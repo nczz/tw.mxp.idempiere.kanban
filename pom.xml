@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>tw.mxp.idempiere</groupId>
+    <artifactId>tw.mxp.idempiere.kanban.root</artifactId>
+    <version>14.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>iDempiere Request Kanban Board</name>
+    <description>Kanban board for iDempiere R_Request management</description>
+
+    <modules>
+        <module>tw.mxp.idempiere.kanban.parent</module>
+        <module>tw.mxp.idempiere.kanban</module>
+        <module>tw.mxp.idempiere.kanban.p2</module>
+    </modules>
+</project>

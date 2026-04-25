@@ -1,0 +1,13 @@
+target/
+node_modules/
+spa/node_modules/
+spa/dist/
+.settings/
+.project
+.classpath
+bin/
+*.class
+*.jar
+!tw.idempiere.kanban/web/**
+tw.idempiere.kanban/web/
+.DS_Store

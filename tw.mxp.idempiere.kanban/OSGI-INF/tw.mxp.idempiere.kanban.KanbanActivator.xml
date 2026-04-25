@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
+    immediate="true" name="tw.mxp.idempiere.kanban.KanbanActivator">
+    <implementation class="tw.mxp.idempiere.kanban.KanbanActivator"/>
+</scr:component>

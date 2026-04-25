@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+    <bundle id="tw.mxp.idempiere.kanban" version="0.0.0">
+        <category name="tw.mxp.idempiere.kanban"/>
+    </bundle>
+    <category-def name="tw.mxp.idempiere.kanban" label="iDempiere Request Kanban Board">
+        <description>Kanban board for iDempiere R_Request management</description>
+    </category-def>
+</site>
