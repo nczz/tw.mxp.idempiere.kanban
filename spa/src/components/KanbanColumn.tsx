@@ -46,13 +46,14 @@ export function KanbanColumn({ status, cards, onCardClick, wipLimit }: {
 }
 
 function DraggableCard({ card, onClick }: { card: Card; onClick: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: card.id });
+  const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({ id: card.id });
+  const { setNodeRef: setDropRef } = useDroppable({ id: card.id });
   const style = {
     transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
     opacity: isDragging ? 0.3 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes} onClick={onClick}>
+    <div ref={(node) => { setDragRef(node); setDropRef(node); }} style={style} {...listeners} {...attributes} onClick={onClick}>
       <KanbanCard card={card} />
     </div>
   );
