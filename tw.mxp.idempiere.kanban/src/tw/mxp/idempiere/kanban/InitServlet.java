@@ -102,7 +102,7 @@ public class InitServlet extends HttpServlet {
 		String prSql = "SELECT rl.Value, COALESCE(t.Name, rl.Name) AS Name "
 				+ "FROM AD_Ref_List rl "
 				+ "LEFT JOIN AD_Ref_List_Trl t ON rl.AD_Ref_List_ID=t.AD_Ref_List_ID AND t.AD_Language=? AND t.IsTranslated='Y' "
-				+ "WHERE rl.AD_Reference_ID=(SELECT AD_Reference_ID FROM AD_Reference WHERE Name='_PriorityRule' AND IsActive='Y') "
+				+ "WHERE rl.AD_Reference_ID=154 "
 				+ "AND rl.IsActive='Y' ORDER BY rl.Value";
 		try (PreparedStatement pstmt = DB.prepareStatement(prSql, null)) {
 			pstmt.setString(1, lang);

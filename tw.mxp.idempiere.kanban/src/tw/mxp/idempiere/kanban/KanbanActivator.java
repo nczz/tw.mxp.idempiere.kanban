@@ -127,7 +127,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			DB.executeUpdateEx("INSERT INTO AD_Sequence (AD_Sequence_ID,Name,CurrentNext,IsAudited,StartNewYear,"
 				+ "Description,IsActive,IsTableID,AD_Client_ID,AD_Org_ID,Created,CreatedBy,Updated,UpdatedBy,"
 				+ "IsAutoSequence,StartNo,IncrementNo,CurrentNextSys,AD_Sequence_UU) "
-				+ "VALUES (?,'"+tableName+"',1000000,'N','N','Table "+tableName+"','Y','Y',0,0,now(),100,now(),100,"
+				+ "VALUES (?,'"+tableName+"',1000000,'N','N','Table "+tableName+"','Y','Y',0,0,now(),0,now(),0,"
 				+ "'Y',1000000,1,200000,generate_uuid())", new Object[]{seqId}, null);
 		}
 	}
@@ -137,11 +137,11 @@ public class KanbanActivator extends Incremental2PackActivator {
 		int id = DB.getNextID(0, "AD_Form", null);
 		DB.executeUpdateEx("INSERT INTO AD_Form (AD_Form_ID,AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,"
 			+ "Updated,UpdatedBy,Name,Description,Classname,AccessLevel,IsBetaFunctionality,EntityType,AD_Form_UU) "
-			+ "VALUES (?,0,0,'Y',now(),100,now(),100,'Request Kanban','Kanban board for request management',"
+			+ "VALUES (?,0,0,'Y',now(),0,now(),0,'Request Kanban','Kanban board for request management',"
 			+ "'tw.mxp.idempiere.kanban.KanbanFormController','3','N','U',?)", new Object[]{id, FORM_UU}, null);
 		DB.executeUpdate("INSERT INTO AD_Form_Trl (AD_Form_ID,AD_Language,AD_Client_ID,AD_Org_ID,IsActive,"
 			+ "Created,CreatedBy,Updated,UpdatedBy,Name,Description,Help,IsTranslated,AD_Form_Trl_UU) "
-			+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),100,now(),100,'Request Kanban','Kanban board for request management',NULL,'N',generate_uuid() "
+			+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),0,now(),0,'Request Kanban','Kanban board for request management',NULL,'N',generate_uuid() "
 			+ "FROM AD_Language l WHERE l.IsActive='Y' AND l.IsSystemLanguage='Y' AND l.IsBaseLanguage='N' "
 			+ "AND NOT EXISTS (SELECT 1 FROM AD_Form_Trl t WHERE t.AD_Form_ID="+id+" AND t.AD_Language=l.AD_Language)", false, null);
 		DB.executeUpdate("UPDATE AD_Form_Trl SET Name='需求看板',Description='iDempiere 需求工單看板管理',IsTranslated='Y' WHERE AD_Form_ID="+id+" AND AD_Language='zh_TW'", false, null);
@@ -154,21 +154,21 @@ public class KanbanActivator extends Incremental2PackActivator {
 		int id = DB.getNextID(0, "AD_Menu", null);
 		DB.executeUpdateEx("INSERT INTO AD_Menu (AD_Menu_ID,AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,"
 			+ "Updated,UpdatedBy,Name,Description,IsSummary,IsSOTrx,IsReadOnly,Action,AD_Form_ID,EntityType,AD_Menu_UU) "
-			+ "VALUES (?,0,0,'Y',now(),100,now(),100,'Request Kanban','Kanban board for request management',"
+			+ "VALUES (?,0,0,'Y',now(),0,now(),0,'Request Kanban','Kanban board for request management',"
 			+ "'N','N','N','X',?,'U',?)", new Object[]{id, formId, MENU_UU}, null);
 		DB.executeUpdate("INSERT INTO AD_Menu_Trl (AD_Menu_ID,AD_Language,AD_Client_ID,AD_Org_ID,IsActive,"
 			+ "Created,CreatedBy,Updated,UpdatedBy,Name,Description,IsTranslated,AD_Menu_Trl_UU) "
-			+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),100,now(),100,'Request Kanban','Kanban board for request management','N',generate_uuid() "
+			+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),0,now(),0,'Request Kanban','Kanban board for request management','N',generate_uuid() "
 			+ "FROM AD_Language l WHERE l.IsActive='Y' AND l.IsSystemLanguage='Y' AND l.IsBaseLanguage='N' "
 			+ "AND NOT EXISTS (SELECT 1 FROM AD_Menu_Trl t WHERE t.AD_Menu_ID="+id+" AND t.AD_Language=l.AD_Language)", false, null);
 		DB.executeUpdate("UPDATE AD_Menu_Trl SET Name='需求看板',Description='iDempiere 需求工單看板管理',IsTranslated='Y' WHERE AD_Menu_ID="+id+" AND AD_Language='zh_TW'", false, null);
 		int treeId = DB.getSQLValueEx(null, "SELECT AD_Tree_Menu_ID FROM AD_ClientInfo WHERE AD_Client_ID=0");
 		if (treeId <= 0) treeId = 10;
 		DB.executeUpdate("INSERT INTO AD_TreeNodeMM (AD_Tree_ID,Node_ID,AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,Updated,UpdatedBy,Parent_ID,SeqNo,AD_TreeNodeMM_UU) "
-			+ "SELECT "+treeId+","+id+",0,0,'Y',now(),100,now(),100,500,99,generate_uuid() "
+			+ "SELECT "+treeId+","+id+",0,0,'Y',now(),0,now(),0,500,99,generate_uuid() "
 			+ "WHERE NOT EXISTS (SELECT 1 FROM AD_TreeNodeMM WHERE AD_Tree_ID="+treeId+" AND Node_ID="+id+")", false, null);
 		DB.executeUpdate("INSERT INTO AD_Form_Access (AD_Form_ID,AD_Role_ID,AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,Updated,UpdatedBy,IsReadWrite,AD_Form_Access_UU) "
-			+ "SELECT "+formId+",r.AD_Role_ID,r.AD_Client_ID,0,'Y',now(),100,now(),100,'Y',generate_uuid() "
+			+ "SELECT "+formId+",r.AD_Role_ID,r.AD_Client_ID,0,'Y',now(),0,now(),0,'Y',generate_uuid() "
 			+ "FROM AD_Role r WHERE r.IsActive='Y' AND NOT EXISTS (SELECT 1 FROM AD_Form_Access a WHERE a.AD_Form_ID="+formId+" AND a.AD_Role_ID=r.AD_Role_ID)", false, null);
 	}
 
@@ -276,10 +276,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 			int id = DB.getNextID(0, "AD_Message", null);
 			DB.executeUpdateEx("INSERT INTO AD_Message (AD_Message_ID,AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,"
 				+ "Updated,UpdatedBy,Value,MsgText,MsgType,EntityType,AD_Message_UU) "
-				+ "VALUES (?,0,0,'Y',now(),100,now(),100,?,?,'I','U',generate_uuid())", new Object[]{id, m[0], m[1]}, null);
+				+ "VALUES (?,0,0,'Y',now(),0,now(),0,?,?,'I','U',generate_uuid())", new Object[]{id, m[0], m[1]}, null);
 			DB.executeUpdate("INSERT INTO AD_Message_Trl (AD_Message_ID,AD_Language,AD_Client_ID,AD_Org_ID,IsActive,"
 				+ "Created,CreatedBy,Updated,UpdatedBy,MsgText,MsgTip,IsTranslated,AD_Message_Trl_UU) "
-				+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),100,now(),100,'"+m[1].replace("'","''")+"',NULL,'N',generate_uuid() "
+				+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),0,now(),0,'"+m[1].replace("'","''")+"',NULL,'N',generate_uuid() "
 				+ "FROM AD_Language l WHERE l.IsActive='Y' AND l.IsSystemLanguage='Y' AND l.IsBaseLanguage='N' "
 				+ "AND NOT EXISTS (SELECT 1 FROM AD_Message_Trl t WHERE t.AD_Message_ID="+id+" AND t.AD_Language=l.AD_Language)", false, null);
 			DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='"+m[2].replace("'","''")+"',IsTranslated='Y' WHERE AD_Message_ID="+id+" AND AD_Language='zh_TW'", false, null);

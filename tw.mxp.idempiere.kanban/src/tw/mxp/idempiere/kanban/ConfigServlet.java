@@ -166,7 +166,7 @@ public class ConfigServlet extends HttpServlet {
 			int id = DB.getNextID(clientId, "AD_SysConfig", null);
 			DB.executeUpdateEx("INSERT INTO AD_SysConfig (AD_SysConfig_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, EntityType, ConfigurationLevel, AD_SysConfig_UU) "
-				+ "VALUES (?, ?, 0, 'Y', now(), 100, now(), 100, ?, ?, 'U', 'C', generate_uuid())",
+				+ "VALUES (?, ?, 0, 'Y', now(), 0, now(), 0, ?, ?, 'U', 'C', generate_uuid())",
 				new Object[]{id, clientId, name, value}, null);
 		}
 	}
