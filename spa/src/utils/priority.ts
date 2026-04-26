@@ -19,7 +19,7 @@ export function priorityHex(p: string): string {
   return colors[p] || '#D1D5DB';
 }
 
-export function priorityColor(p: string): string {
+export function priorityColor(_p: string): string {
   // Return Tailwind-compatible inline style instead of class
   return ''; // Now using inline style with priorityHex
 }
