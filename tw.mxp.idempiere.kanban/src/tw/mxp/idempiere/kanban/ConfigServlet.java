@@ -69,11 +69,13 @@ public class ConfigServlet extends HttpServlet {
 				int seqNo = s.has("seqNo") ? s.get("seqNo").getAsInt() : 99;
 				int sId = DB.getNextID(0, "R_Status", null);
 				DB.executeUpdateEx("INSERT INTO R_Status (R_Status_ID, AD_Client_ID, AD_Org_ID, IsActive, "
-					+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, SeqNo, "
+					+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, R_StatusCategory_ID, SeqNo, "
 					+ "IsOpen, IsClosed, IsFinalClose, IsDefault, R_Status_UU) "
-					+ "VALUES (?, 0, 0, 'Y', now(), ?, now(), ?, ?, ?, ?, ?, ?, ?, 'N', generate_uuid())",
+					+ "VALUES (?, 0, 0, 'Y', now(), ?, now(), ?, ?, ?, ?, ?, ?, ?, ?, 'N', generate_uuid())",
 					new Object[]{sId, userId, userId,
-						s.get("name").getAsString(), catId, seqNo,
+						s.get("name").getAsString(),
+						s.get("name").getAsString().replace(" ", ""),
+						catId, seqNo,
 						s.has("isOpen") && s.get("isOpen").getAsBoolean() ? "Y" : "N",
 						s.has("isClosed") && s.get("isClosed").getAsBoolean() ? "Y" : "N",
 						s.has("isFinalClose") && s.get("isFinalClose").getAsBoolean() ? "Y" : "N"

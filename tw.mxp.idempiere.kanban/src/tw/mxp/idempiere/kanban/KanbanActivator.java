@@ -4,6 +4,7 @@ import java.util.logging.Level;
 
 import org.adempiere.base.Core;
 import org.adempiere.plugin.utils.Incremental2PackActivator;
+import org.compiere.Adempiere;
 import org.compiere.model.Query;
 import org.compiere.model.X_AD_Package_Imp;
 import org.compiere.util.CLogger;
@@ -22,23 +23,37 @@ public class KanbanActivator extends Incremental2PackActivator {
 		try { Core.getMappedModelFactory().scan(context, "tw.mxp.idempiere.kanban"); }
 		catch (Exception e) { log.log(Level.FINE, "scan", e); }
 		super.start(context);
+
+		// If server is already started (bundle update/restart), run migrations directly
+		if (Adempiere.isStarted()) {
+			Adempiere.getThreadPoolExecutor().execute(() -> {
+				try { runMigrations(); } catch (Exception e) { log.log(Level.WARNING, "migration", e); }
+			});
+		}
 	}
 
 	@Override
 	protected void afterPackIn() {
 		super.afterPackIn();
+		runMigrations();
+	}
 
-		// Version-tracked migrations (same pattern as appointment plugin)
-		if (!isMigrationApplied("1.0.0")) {
-			ensureTables();
-			ensureForm();
-			ensureMenu();
-			recordMigration("1.0.0");
-		}
-		if (!isMigrationApplied("1.1.0")) {
-			ensureDefaultBoard();
-			ensureMessages();
-			recordMigration("1.1.0");
+	/** Also called from ServerStateChange if afterPackIn was skipped */
+	private void runMigrations() {
+		try {
+			if (!isMigrationApplied("1.0.0")) {
+				ensureTables();
+				ensureForm();
+				ensureMenu();
+				recordMigration("1.0.0");
+			}
+			if (!isMigrationApplied("1.1.0")) {
+				ensureDefaultBoard();
+				ensureMessages();
+				recordMigration("1.1.0");
+			}
+		} catch (Exception e) {
+			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
 	}
 
@@ -165,10 +180,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 			for (String[] s : statuses) {
 				int sId = DB.getNextID(0, "R_Status", null);
 				DB.executeUpdateEx("INSERT INTO R_Status (R_Status_ID, AD_Client_ID, AD_Org_ID, IsActive, "
-					+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, SeqNo, "
+					+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, R_StatusCategory_ID, SeqNo, "
 					+ "IsOpen, IsClosed, IsFinalClose, IsDefault, R_Status_UU) "
-					+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, ?, ?, ?, ?, ?, ?, ?, generate_uuid())",
-					new Object[]{sId, s[0], catId, Integer.parseInt(s[1]), s[2], s[3], s[4], s[5]}, null);
+					+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, ?, ?, ?, ?, ?, ?, ?, ?, generate_uuid())",
+					new Object[]{sId, s[0], s[0].replace(" ", ""), catId, Integer.parseInt(s[1]), s[2], s[3], s[4], s[5]}, null);
 			}
 		}
 		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_RequestType WHERE Name='Kanban Task'") == 0) {
