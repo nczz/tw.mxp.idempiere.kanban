@@ -100,6 +100,8 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanStatusClosed': '🔴 Closed',
   'KanbanStatusFinalClose': '⛔ Final Close',
   'KanbanDeleteStatus': 'Delete',
+  'KanbanSharedStatuses': 'Statuses shared with',
+  'KanbanMakeIndependent': 'Make Independent',
   'KanbanCannotDelete': 'Cannot delete: cards use this status',
   'KanbanDefault': 'Default',
   'KanbanFinalCloseWarning': 'This will permanently close the card. It cannot be reopened. Continue?',

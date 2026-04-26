@@ -281,6 +281,8 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanWipTooltip","WIP Limit (0=∞)","WIP 限制（0=無限）"},
 			{"KanbanLastMoved","Last moved","上次移動"},
 			{"KanbanDefault","Default","預設"},
+			{"KanbanSharedStatuses","Statuses shared with","狀態與以下看板共用"},
+			{"KanbanMakeIndependent","Make Independent","建立獨立狀態"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

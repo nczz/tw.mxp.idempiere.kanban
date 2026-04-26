@@ -163,6 +163,27 @@ export function SettingsDialog({ onClose, onSaved, onError }: Props) {
           {/* Status Management + WIP (merged) */}
           {tab === 'status' && (
             <div>
+              {(() => {
+                const sharedRts = activeRt ? init.requestTypes.filter(
+                  (rt) => rt.statusCategoryId === activeRt.statusCategoryId && rt.id !== activeRt.id
+                ) : [];
+                return sharedRts.length > 0 && (
+                  <div className="text-xs bg-yellow-50 border border-yellow-200 rounded p-2 mb-3 flex items-center justify-between">
+                    <span>⚠️ {t('KanbanSharedStatuses')}: {sharedRts.map((rt) => rt.name).join(', ')}</span>
+                    <button onClick={async () => {
+                      if (!activeRt) return;
+                      try {
+                        await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({
+                          cloneStatusCategory: { requestTypeId: activeRt.id, statusCategoryId: activeRt.statusCategoryId }
+                        }) });
+                        refresh(); onSaved();
+                      } catch (e: any) { onError(e.message); }
+                    }} className="text-xs bg-yellow-500 text-white px-2 py-0.5 rounded hover:bg-yellow-600 whitespace-nowrap ml-2">
+                      {t('KanbanMakeIndependent')}
+                    </button>
+                  </div>
+                );
+              })()}
               <div className="space-y-2 mb-3">
                 {managedStatuses.map((s, idx) => (
                   <div key={s.id} className="flex items-center gap-2 bg-gray-50 rounded p-2">

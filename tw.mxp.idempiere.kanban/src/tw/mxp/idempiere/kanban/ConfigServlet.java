@@ -1,6 +1,8 @@
 package tw.mxp.idempiere.kanban;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Map;
 import java.util.Properties;
 
@@ -79,6 +81,43 @@ public class ConfigServlet extends HttpServlet {
 				JsonObject rt = json.getAsJsonObject("renameRequestType");
 				DB.executeUpdateEx("UPDATE R_RequestType SET Name=?, Updated=now(), UpdatedBy=? WHERE R_RequestType_ID=? AND AD_Client_ID IN (0,?)",
 					new Object[]{rt.get("name").getAsString(), userId, rt.get("id").getAsInt(), clientId}, null);
+			}
+
+			// Clone status category for independent statuses
+			if (json.has("cloneStatusCategory")) {
+				JsonObject cs = json.getAsJsonObject("cloneStatusCategory");
+				int rtId = cs.get("requestTypeId").getAsInt();
+				int oldCatId = cs.get("statusCategoryId").getAsInt();
+				// Create new category
+				int newCatId = DB.getNextID(0, "R_StatusCategory", null);
+				String catName = DB.getSQLValueStringEx(null, "SELECT Name FROM R_StatusCategory WHERE R_StatusCategory_ID=?", oldCatId);
+				String rtName = DB.getSQLValueStringEx(null, "SELECT Name FROM R_RequestType WHERE R_RequestType_ID=?", rtId);
+				DB.executeUpdateEx("INSERT INTO R_StatusCategory (R_StatusCategory_ID,AD_Client_ID,AD_Org_ID,IsActive,"
+					+ "Created,CreatedBy,Updated,UpdatedBy,Name,R_StatusCategory_UU) "
+					+ "VALUES (?,0,0,'Y',now(),?,now(),?,?,generate_uuid())",
+					new Object[]{newCatId, userId, userId, rtName + " - " + catName}, null);
+				// Copy statuses
+				String copySql = "SELECT R_Status_ID, Name, Value, SeqNo, IsOpen, IsClosed, IsFinalClose, IsDefault "
+					+ "FROM R_Status WHERE R_StatusCategory_ID=? ORDER BY SeqNo";
+				try (PreparedStatement ps = DB.prepareStatement(copySql, null)) {
+					ps.setInt(1, oldCatId);
+					try (ResultSet rs2 = ps.executeQuery()) {
+						while (rs2.next()) {
+							int newSId = DB.getNextID(0, "R_Status", null);
+							DB.executeUpdateEx("INSERT INTO R_Status (R_Status_ID,AD_Client_ID,AD_Org_ID,IsActive,"
+								+ "Created,CreatedBy,Updated,UpdatedBy,Name,Value,R_StatusCategory_ID,SeqNo,"
+								+ "IsOpen,IsClosed,IsFinalClose,IsDefault,R_Status_UU) "
+								+ "VALUES (?,0,0,'Y',now(),?,now(),?,?,?,?,?,?,?,?,?,generate_uuid())",
+								new Object[]{newSId, userId, userId,
+									rs2.getString("Name"), rs2.getString("Value"), newCatId, rs2.getInt("SeqNo"),
+									rs2.getString("IsOpen"), rs2.getString("IsClosed"),
+									rs2.getString("IsFinalClose"), rs2.getString("IsDefault")}, null);
+						}
+					}
+				}
+				// Point request type to new category
+				DB.executeUpdateEx("UPDATE R_RequestType SET R_StatusCategory_ID=?, Updated=now(), UpdatedBy=? WHERE R_RequestType_ID=?",
+					new Object[]{newCatId, userId, rtId}, null);
 			}
 
 			// Create new status

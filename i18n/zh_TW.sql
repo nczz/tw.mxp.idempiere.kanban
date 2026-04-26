@@ -117,3 +117,5 @@ UPDATE AD_Message_Trl SET MsgText='在 iDempiere 中開啟', IsTranslated='Y' WH
 UPDATE AD_Message_Trl SET MsgText='WIP 限制（0=無限）', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanWipTooltip');
 UPDATE AD_Message_Trl SET MsgText='上次移動', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanLastMoved');
 UPDATE AD_Message_Trl SET MsgText='預設', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanDefault');
+UPDATE AD_Message_Trl SET MsgText='狀態與以下看板共用', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSharedStatuses');
+UPDATE AD_Message_Trl SET MsgText='建立獨立狀態', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanMakeIndependent');
