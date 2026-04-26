@@ -36,6 +36,8 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
       salesRepId: card!.salesRepId,
       requestTypeId: card!.requestTypeId,
       dateNextAction: card!.dateNextAction ? new Date(card!.dateNextAction).toISOString().slice(0, 16) : '',
+      startDate: card!.startDate ? new Date(card!.startDate).toISOString().slice(0, 16) : '',
+      endTime: card!.endTime ? new Date(card!.endTime).toISOString().slice(0, 16) : '',
       bpartnerId: card!.bpartnerId || undefined,
       bpartnerName: card!.bpartnerName || '',
       productId: card!.productId || undefined,
@@ -67,6 +69,8 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
     if (Number(form.salesRepId) !== card!.salesRepId) data.salesRepId = Number(form.salesRepId);
     if (Number(form.requestTypeId) !== card!.requestTypeId) data.requestTypeId = Number(form.requestTypeId);
     if (form.dateNextAction) data.dateNextAction = new Date(form.dateNextAction as string).getTime();
+    if (form.startDate) data.startDate = new Date(form.startDate as string).getTime();
+    if (form.endTime) data.endTime = new Date(form.endTime as string).getTime();
     // ERP links
     const fkFields = ['bpartnerId','productId','orderId','invoiceId','paymentId','projectId','campaignId','assetId','activityId'];
     for (const fk of fkFields) {
@@ -167,6 +171,14 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 <label className="text-xs text-gray-500">{t("KanbanDateNextAction")}</label>
                 <input type="datetime-local" value={form.dateNextAction as string} onChange={set('dateNextAction')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
               </div>
+              <div>
+                <label className="text-xs text-gray-500">{t("KanbanStartDate")}</label>
+                <input type="datetime-local" value={form.startDate as string} onChange={set('startDate')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">{t("KanbanEndTime")}</label>
+                <input type="datetime-local" value={form.endTime as string} onChange={set('endTime')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
+              </div>
             </div>
             {/* ERP Links (edit) */}
             <div className="text-xs font-semibold text-gray-500 mt-3 mb-1">ERP Links</div>
@@ -218,6 +230,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               <Field label={t("KanbanCreated")} value={fmtDate(card.created)} />
               <Field label={t("KanbanNextAction")} value={fmtDate(card.dateNextAction)} />
               <Field label={t("KanbanStartDate")} value={fmtDate(card.startDate)} />
+              <Field label={t("KanbanEndTime")} value={fmtDate(card.endTime)} />
               {card.closeDate && <Field label={t("KanbanCloseDate")} value={fmtDate(card.closeDate)} />}
             </div>
           </>

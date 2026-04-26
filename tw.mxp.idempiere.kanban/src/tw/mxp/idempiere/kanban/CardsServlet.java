@@ -600,6 +600,10 @@ public class CardsServlet extends HttpServlet {
 					if (json.has("requestTypeId")) request.setR_RequestType_ID(json.get("requestTypeId").getAsInt());
 					if (json.has("dateNextAction") && !json.get("dateNextAction").isJsonNull())
 						request.setDateNextAction(new Timestamp(json.get("dateNextAction").getAsLong()));
+					if (json.has("startDate") && !json.get("startDate").isJsonNull())
+						request.setStartDate(new Timestamp(json.get("startDate").getAsLong()));
+					if (json.has("endTime") && !json.get("endTime").isJsonNull())
+						request.set_ValueOfColumn("EndTime", new Timestamp(json.get("endTime").getAsLong()));
 					if (json.has("bpartnerId")) request.setC_BPartner_ID(json.get("bpartnerId").getAsInt());
 					if (json.has("productId")) request.setM_Product_ID(json.get("productId").getAsInt());
 					if (json.has("orderId")) request.set_ValueOfColumn("C_Order_ID", json.get("orderId").getAsInt() > 0 ? json.get("orderId").getAsInt() : null);

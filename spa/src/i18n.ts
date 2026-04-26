@@ -44,6 +44,7 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanCreated': 'Created',
   'KanbanNextAction': 'Next Action',
   'KanbanStartDate': 'Start Date',
+  'KanbanEndTime': 'End Time',
   'KanbanCloseDate': 'Close Date',
   'KanbanDateNextAction': 'Date Next Action',
   'KanbanBusinessPartner': 'Business Partner',

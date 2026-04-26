@@ -80,6 +80,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanCreated", "Created", "建立時間"},
 			{"KanbanNextAction", "Next Action", "下次動作"},
 			{"KanbanStartDate", "Start Date", "開始日期"},
+			{"KanbanEndTime", "End Time", "結束日期"},
 			{"KanbanCloseDate", "Close Date", "結案日期"},
 			{"KanbanDateNextAction", "Date Next Action", "下次動作日"},
 			{"KanbanBusinessPartner", "Business Partner", "業務夥伴"},
