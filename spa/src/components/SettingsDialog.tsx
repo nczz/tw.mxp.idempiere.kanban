@@ -1,28 +1,35 @@
 import { useState } from 'react';
-import { kanbanFetch } from '../api';
+import { useQueryClient } from '@tanstack/react-query';
+import { kanbanFetch, zoomRecord } from '../api';
 import { t } from '../i18n';
 import { getDefaultColors, priorityLabel } from '../utils/priority';
-import type { InitData, Status } from '../types';
+import { useInit } from '../hooks/useCards';
+import type { Status } from '../types';
 
 interface Props {
-  init: InitData;
   onClose: () => void;
   onSaved: (savedRequestTypeId?: number) => void;
   onError: (msg: string) => void;
 }
 
-export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
+export function SettingsDialog({ onClose, onSaved, onError }: Props) {
+  const { data: init } = useInit();
+  const qc = useQueryClient();
+  const refresh = () => qc.invalidateQueries({ queryKey: ['init'] });
+
   const [tab, setTab] = useState<'source' | 'status' | 'colors'>('source');
-  const [activeRtId, setActiveRtId] = useState(String(init.activeRequestTypeId || ''));
+  const [activeRtId, setActiveRtId] = useState(String(init?.activeRequestTypeId || ''));
   const [wipLimits, setWipLimits] = useState<Record<string, string>>(() => {
     const m: Record<string, string> = {};
-    for (const s of init.statuses) m[String(s.id)] = String(init.wipLimits?.[String(s.id)] || '');
+    if (init) for (const s of init.statuses) m[String(s.id)] = String(init.wipLimits?.[String(s.id)] || '');
     return m;
   });
-  const [colors, setColors] = useState<Record<string, string>>(() => ({ ...getDefaultColors(), ...(init.priorityColors || {}) }));
+  const [colors, setColors] = useState<Record<string, string>>(() => ({ ...getDefaultColors(), ...(init?.priorityColors || {}) }));
   const [newStatusName, setNewStatusName] = useState('');
   const [newStatusType, setNewStatusType] = useState('open');
   const [saving, setSaving] = useState(false);
+
+  if (!init) return null;
 
   const activeRt = init.requestTypes.find((rt) => rt.id === Number(activeRtId));
   const managedStatuses = activeRt
@@ -41,7 +48,7 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
         method: 'POST',
         body: JSON.stringify({ activeRequestTypeId: Number(activeRtId), wipLimits: wipData, priorityColors: colors }),
       });
-      onSaved(Number(activeRtId) || undefined);
+      refresh(); onSaved(Number(activeRtId) || undefined);
       onClose();
     } catch (e: any) { onError(e.message); }
     setSaving(false);
@@ -65,7 +72,7 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
         }),
       });
       setNewStatusName('');
-      onSaved();
+      refresh(); onSaved();
     } catch (e: any) { onError(e.message); }
     setSaving(false);
   }
@@ -78,14 +85,14 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
           updateStatus: { id: s.id, name: updates.name ?? s.name, seqNo: updates.seqNo ?? s.seqNo, isOpen: updates.isOpen ?? s.isOpen, isClosed: updates.isClosed ?? s.isClosed, isFinalClose: updates.isFinalClose ?? false },
         }),
       });
-      onSaved();
+      refresh(); onSaved();
     } catch (e: any) { onError(e.message); }
   }
 
   async function deleteStatus(sId: number) {
     try {
       await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ deleteStatusId: sId }) });
-      onSaved();
+      refresh(); onSaved();
     } catch (e: any) { onError(e.message); }
   }
 
@@ -118,15 +125,16 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
                     setActiveRtId(String(rt.id));
                     try {
                       await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ activeRequestTypeId: rt.id }) });
-                      onSaved(rt.id);
+                      refresh(); onSaved(rt.id);
                     } catch (e: any) { onError(e.message); }
                   }}
                   onRename={async (name) => {
                     try {
                       await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ renameRequestType: { id: rt.id, name } }) });
-                      onSaved();
+                      refresh(); onSaved();
                     } catch (e: any) { onError(e.message); }
                   }}
+                  onZoom={() => zoomRecord('R_RequestType', rt.id)}
                 />
               ))}
               <NewRequestTypeRow
@@ -135,7 +143,7 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
                 onCreate={async (name, catId) => {
                   try {
                     await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ createRequestType: { name, statusCategoryId: catId } }) });
-                    onSaved();
+                    refresh(); onSaved();
                   } catch (e: any) { onError(e.message); }
                 }}
               />
@@ -167,6 +175,8 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
                       className="w-16 border rounded px-1 py-1 text-xs text-center" title="WIP Limit (0=∞)" />
                     <button onClick={() => { if (confirm(t('KanbanDeleteStatus') + '?')) deleteStatus(s.id); }}
                       className="text-xs text-red-400 hover:text-red-600">✕</button>
+                    <button onClick={() => zoomRecord('R_Status', s.id)} title="Open in iDempiere"
+                      className="text-xs text-gray-400 hover:text-blue-500">🔗</button>
                   </div>
                 ))}
               </div>
@@ -216,9 +226,9 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
   );
 }
 
-function RequestTypeRow({ rt, isDefault, onSetDefault, onRename }: {
+function RequestTypeRow({ rt, isDefault, onSetDefault, onRename, onZoom }: {
   rt: { id: number; name: string }; isDefault: boolean;
-  onSetDefault: () => void; onRename: (name: string) => void;
+  onSetDefault: () => void; onRename: (name: string) => void; onZoom: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(rt.name);
@@ -239,9 +249,10 @@ function RequestTypeRow({ rt, isDefault, onSetDefault, onRename }: {
       ) : (
         <span className="flex-1 cursor-pointer" onDoubleClick={() => setEditing(true)}>{rt.name}</span>
       )}
-      {!editing && (
+      {!editing && (<>
         <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-gray-600">✏️</button>
-      )}
+        <button onClick={onZoom} title="Open in iDempiere" className="text-xs text-gray-400 hover:text-blue-500">🔗</button>
+      </>)}
     </div>
   );
 }
