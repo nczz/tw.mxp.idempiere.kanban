@@ -46,15 +46,18 @@ public class KanbanActivator extends Incremental2PackActivator {
 
 	private void ensureDefaultBoard() {
 		// Create default StatusCategory + Statuses + RequestType for Kanban
-		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_StatusCategory WHERE Name='Kanban Board'") > 0)
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_Status s JOIN R_StatusCategory c ON s.R_StatusCategory_ID=c.R_StatusCategory_ID WHERE c.Name='Kanban Board'") > 0)
 			return;
 
-		log.info("Creating default Kanban Board status category...");
-		int catId = DB.getNextID(0, "R_StatusCategory", null);
-		DB.executeUpdateEx("INSERT INTO R_StatusCategory (R_StatusCategory_ID, AD_Client_ID, AD_Org_ID, IsActive, "
-			+ "Created, CreatedBy, Updated, UpdatedBy, Name, IsDefault, R_StatusCategory_UU) "
-			+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Board', 'N', generate_uuid())",
-			new Object[]{catId}, null);
+		int catId = DB.getSQLValueEx(null, "SELECT R_StatusCategory_ID FROM R_StatusCategory WHERE Name='Kanban Board'");
+		if (catId <= 0) {
+			log.info("Creating default Kanban Board status category...");
+			catId = DB.getNextID(0, "R_StatusCategory", null);
+			DB.executeUpdateEx("INSERT INTO R_StatusCategory (R_StatusCategory_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, IsDefault, R_StatusCategory_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Board', 'N', generate_uuid())",
+				new Object[]{catId}, null);
+		}
 
 		String[][] statuses = {
 			// Name, SeqNo, IsOpen, IsClosed, IsFinalClose, IsDefault
@@ -74,18 +77,21 @@ public class KanbanActivator extends Incremental2PackActivator {
 				new Object[]{sId, s[0], catId, Integer.parseInt(s[1]), s[2], s[3], s[4], s[5]}, null);
 		}
 
-		// Create RequestType linked to this category
-		int rtId = DB.getNextID(0, "R_RequestType", null);
-		DB.executeUpdateEx("INSERT INTO R_RequestType (R_RequestType_ID, AD_Client_ID, AD_Org_ID, IsActive, "
-			+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, IsDefault, "
-			+ "IsSelfService, IsAutoChangeRequest, IsConfidentialInfo, IsEMailWhenDue, IsEMailWhenOverdue, "
-			+ "AutoDueDateDays, ConfidentialType, R_RequestType_UU) "
-			+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Task', ?, 'N', "
-			+ "'N', 'N', 'N', 'N', 'N', 0, 'A', generate_uuid())",
-			new Object[]{rtId, catId}, null);
-
-		// Set as active kanban request type
-		saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", String.valueOf(rtId), 0);
+		// Create RequestType if not exists
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_RequestType WHERE Name='Kanban Task'") == 0) {
+			int rtId = DB.getNextID(0, "R_RequestType", null);
+			DB.executeUpdateEx("INSERT INTO R_RequestType (R_RequestType_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, IsDefault, "
+				+ "IsSelfService, IsAutoChangeRequest, IsConfidentialInfo, IsEMailWhenDue, IsEMailWhenOverdue, "
+				+ "AutoDueDateDays, ConfidentialType, R_RequestType_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Task', ?, 'N', "
+				+ "'N', 'N', 'N', 'N', 'N', 0, 'A', generate_uuid())",
+				new Object[]{rtId, catId}, null);
+			saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", String.valueOf(rtId), 0);
+		} else if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_SysConfig WHERE Name='KANBAN_ACTIVE_REQUEST_TYPE'") == 0) {
+			int rtId = DB.getSQLValueEx(null, "SELECT R_RequestType_ID FROM R_RequestType WHERE Name='Kanban Task'");
+			if (rtId > 0) saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", String.valueOf(rtId), 0);
+		}
 		log.info("Default Kanban Board created: category=" + catId + " requestType=" + rtId);
 	}
 
