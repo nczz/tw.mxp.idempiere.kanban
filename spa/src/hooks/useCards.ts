@@ -137,7 +137,7 @@ export function useAddComment() {
 export function useCreateCard() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { summary: string; result?: string; requestTypeId?: number; statusId?: number; bpartnerId?: number; productId?: number; projectId?: number; campaignId?: number; activityId?: number; priority?: number; salesRepId?: number; dateNextAction?: number }) =>
+    mutationFn: (data: { summary: string; result?: string; requestTypeId?: number; statusId?: number; orgId?: number; bpartnerId?: number; productId?: number; projectId?: number; campaignId?: number; activityId?: number; priority?: number; salesRepId?: number; dateNextAction?: number }) =>
       kanbanFetch<{ success: boolean; id: number }>('/cards', {
         method: 'POST', body: JSON.stringify(data),
       }),

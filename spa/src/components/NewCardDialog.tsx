@@ -7,12 +7,14 @@ import type { InitData } from '../types';
 interface Props {
   init: InitData;
   requestTypeId?: number;
+  orgId?: number;
   onClose: () => void;
   onError: (msg: string) => void;
 }
 
-export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onError }: Props) {
+export function NewCardDialog({ init, requestTypeId: activeRtId, orgId: filterOrgId, onClose, onError }: Props) {
   const [summary, setSummary] = useState('');
+  const [orgId, setOrgId] = useState<string>(String(filterOrgId || init.orgs?.[0]?.id || ''));
   const [result, setResult] = useState('');
   const [requestTypeId, setRequestTypeId] = useState<string>(String(activeRtId || init.requestTypes[0]?.id || ''));
   const activeRt = init.requestTypes.find((rt) => rt.id === Number(requestTypeId));
@@ -35,6 +37,7 @@ export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onErro
         result: result.trim() || undefined,
         requestTypeId: requestTypeId ? Number(requestTypeId) : undefined,
         statusId: statusId ? Number(statusId) : undefined,
+        orgId: orgId ? Number(orgId) : undefined,
         priority: Number(priority),
         salesRepId: salesRepId ? Number(salesRepId) : undefined,
         dateNextAction: dateNextAction ? new Date(dateNextAction).getTime() : undefined,
@@ -69,6 +72,15 @@ export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onErro
             <textarea value={result} onChange={(e) => setResult(e.target.value)}
               className="w-full border rounded px-2 py-1.5 text-sm mt-0.5 h-16" placeholder={t("KanbanAdditionalDetails")} />
           </div>
+          {init.orgs && init.orgs.length > 1 && (
+            <div>
+              <label className="text-xs text-gray-500">Org</label>
+              <select value={orgId} onChange={(e) => setOrgId(e.target.value)}
+                className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
+                {init.orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-500">{t("KanbanRequestType")}</label>

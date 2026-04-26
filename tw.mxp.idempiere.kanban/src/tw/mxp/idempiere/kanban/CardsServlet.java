@@ -735,6 +735,7 @@ public class CardsServlet extends HttpServlet {
 		int clientId = AuthContext.getClientId(req);
 		int orgId = AuthContext.getOrgId(req);
 		int userId = AuthContext.getUserId(req);
+		int roleId = AuthContext.getRoleId(req);
 
 		StringBuilder body = new StringBuilder();
 		req.getReader().lines().forEach(body::append);
@@ -745,11 +746,21 @@ public class CardsServlet extends HttpServlet {
 			resp.setStatus(400); resp.getWriter().print("{\"error\":\"Summary is required\"}"); return;
 		}
 
+		// Use provided orgId if valid, otherwise fall back to JWT org
+		if (json.has("orgId") && json.get("orgId").getAsInt() > 0) {
+			int reqOrgId = json.get("orgId").getAsInt();
+			// Verify role has access to this org
+			int hasAccess = DB.getSQLValueEx(null,
+				"SELECT COUNT(*) FROM AD_Role_OrgAccess WHERE AD_Role_ID=? AND AD_Org_ID=? AND IsActive='Y'", roleId, reqOrgId);
+			if (hasAccess > 0) orgId = reqOrgId;
+		}
+
+		final int effectiveOrgId = orgId;
 		final int[] newId = {0};
 		try {
 			Properties ctx = Env.getCtx();
 			Env.setContext(ctx, "#AD_Client_ID", clientId);
-			Env.setContext(ctx, "#AD_Org_ID", orgId > 0 ? orgId : DB.getSQLValueEx(null,
+			Env.setContext(ctx, "#AD_Org_ID", effectiveOrgId > 0 ? effectiveOrgId : DB.getSQLValueEx(null,
 				"SELECT MIN(AD_Org_ID) FROM AD_Org WHERE AD_Client_ID=? AND AD_Org_ID>0 AND IsActive='Y'", clientId));
 			Env.setContext(ctx, "#AD_User_ID", userId);
 
