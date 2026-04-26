@@ -525,7 +525,16 @@ public class CardsServlet extends HttpServlet {
 					if (json.has("salesRepId")) request.setSalesRep_ID(json.get("salesRepId").getAsInt());
 					if (json.has("dateNextAction") && !json.get("dateNextAction").isJsonNull())
 						request.setDateNextAction(new Timestamp(json.get("dateNextAction").getAsLong()));
+					if (json.has("productId")) request.setM_Product_ID(json.get("productId").getAsInt());
+					if (json.has("projectId")) request.setC_Project_ID(json.get("projectId").getAsInt());
+					if (json.has("campaignId")) request.setC_Campaign_ID(json.get("campaignId").getAsInt());
+					if (json.has("activityId")) request.set_ValueOfColumn("C_Activity_ID", json.get("activityId").getAsInt());
 					request.saveEx(trxName);
+					// Result via direct SQL (MRequest.setResult writes to R_RequestUpdate)
+					if (json.has("result") && !json.get("result").getAsString().isEmpty()) {
+						DB.executeUpdateEx("UPDATE R_Request SET Result=? WHERE R_Request_ID=?",
+							new Object[]{json.get("result").getAsString(), request.getR_Request_ID()}, trxName);
+					}
 					newId[0] = request.getR_Request_ID();
 				}
 			});
