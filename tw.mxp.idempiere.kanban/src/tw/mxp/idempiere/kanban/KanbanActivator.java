@@ -52,6 +52,12 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureMessages();
 				recordMigration("1.1.0");
 			}
+			if (!isMigrationApplied("1.2.0")) {
+				DB.executeUpdate("UPDATE AD_Message SET MsgText='Blocked' WHERE Value='KanbanEscalated' AND MsgText='Escalated'", false, null);
+				DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='待決',IsTranslated='Y' "
+					+ "WHERE AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEscalated') AND AD_Language='zh_TW'", false, null);
+				recordMigration("1.2.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -209,7 +215,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanCancel","Cancel","取消"},{"KanbanNotesResult","Notes / Result","備註 / 結果"},
 			{"KanbanNoNotes","No notes","無備註"},{"KanbanERPLinks","ERP Links","ERP 關聯"},
 			{"KanbanNoLinks","No linked records","無關聯記錄"},{"KanbanMoveHistory","Move History","移動歷程"},
-			{"KanbanNoMoves","No moves recorded","無移動記錄"},{"KanbanEscalated","Blocked","已阻塞"},
+			{"KanbanNoMoves","No moves recorded","無移動記錄"},{"KanbanEscalated","Blocked","待決"},
 			{"KanbanNewRequest","New Request","新增需求"},{"KanbanSummary","Summary","摘要"},
 			{"KanbanCreate","Create","建立"},{"KanbanCreating","Creating...","建立中..."},
 			{"KanbanStatus","Status","狀態"},{"KanbanRequestType","Request Type","需求類型"},
