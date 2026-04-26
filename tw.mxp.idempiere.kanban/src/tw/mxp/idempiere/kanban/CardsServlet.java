@@ -311,6 +311,13 @@ public class CardsServlet extends HttpServlet {
 			+ "r.C_Payment_ID, r.C_Project_ID, r.C_Campaign_ID, r.A_Asset_ID, "
 			+ "r.IsEscalated, "
 			+ "COALESCE(bp.Name,'') AS BPartnerName, "
+			+ "COALESCE(pd.Name,'') AS ProductName, "
+			+ "COALESCE(ord.DocumentNo,'') AS OrderNo, "
+			+ "COALESCE(inv.DocumentNo,'') AS InvoiceNo, "
+			+ "COALESCE(pay.DocumentNo,'') AS PaymentNo, "
+			+ "COALESCE(pj.Name,'') AS ProjectName, "
+			+ "COALESCE(cp.Name,'') AS CampaignName, "
+			+ "COALESCE(ast.Name,'') AS AssetName, "
 			+ "COALESCE(rt.Name,'') AS RequestTypeName, "
 			+ "COALESCE(sr.Name,'') AS SalesRepName, "
 			+ "COALESCE(req.Name,'') AS RequesterName, "
@@ -319,6 +326,13 @@ public class CardsServlet extends HttpServlet {
 			+ "FROM R_Request r "
 			+ "JOIN R_Status s ON r.R_Status_ID=s.R_Status_ID "
 			+ "LEFT JOIN C_BPartner bp ON r.C_BPartner_ID=bp.C_BPartner_ID "
+			+ "LEFT JOIN M_Product pd ON r.M_Product_ID=pd.M_Product_ID "
+			+ "LEFT JOIN C_Order ord ON r.C_Order_ID=ord.C_Order_ID "
+			+ "LEFT JOIN C_Invoice inv ON r.C_Invoice_ID=inv.C_Invoice_ID "
+			+ "LEFT JOIN C_Payment pay ON r.C_Payment_ID=pay.C_Payment_ID "
+			+ "LEFT JOIN C_Project pj ON r.C_Project_ID=pj.C_Project_ID "
+			+ "LEFT JOIN C_Campaign cp ON r.C_Campaign_ID=cp.C_Campaign_ID "
+			+ "LEFT JOIN A_Asset ast ON r.A_Asset_ID=ast.A_Asset_ID "
 			+ "LEFT JOIN R_RequestType rt ON r.R_RequestType_ID=rt.R_RequestType_ID "
 			+ "LEFT JOIN AD_User sr ON r.SalesRep_ID=sr.AD_User_ID "
 			+ "LEFT JOIN AD_User req ON r.AD_User_ID=req.AD_User_ID "
@@ -356,16 +370,23 @@ public class CardsServlet extends HttpServlet {
 					card.addProperty("requesterName", rs.getString("RequesterName"));
 					card.addProperty("createdBy", rs.getInt("CreatedBy"));
 					card.addProperty("creatorName", rs.getString("CreatorName"));
-					// ERP relationships
+					// ERP relationships (id + name for each)
 					addFk(card, "bpartnerId", rs, "C_BPartner_ID");
 					card.addProperty("bpartnerName", rs.getString("BPartnerName"));
 					addFk(card, "productId", rs, "M_Product_ID");
+					card.addProperty("productName", rs.getString("ProductName"));
 					addFk(card, "orderId", rs, "C_Order_ID");
+					card.addProperty("orderName", rs.getString("OrderNo"));
 					addFk(card, "invoiceId", rs, "C_Invoice_ID");
+					card.addProperty("invoiceName", rs.getString("InvoiceNo"));
 					addFk(card, "paymentId", rs, "C_Payment_ID");
+					card.addProperty("paymentName", rs.getString("PaymentNo"));
 					addFk(card, "projectId", rs, "C_Project_ID");
+					card.addProperty("projectName", rs.getString("ProjectName"));
 					addFk(card, "campaignId", rs, "C_Campaign_ID");
+					card.addProperty("campaignName", rs.getString("CampaignName"));
 					addFk(card, "assetId", rs, "A_Asset_ID");
+					card.addProperty("assetName", rs.getString("AssetName"));
 				}
 			}
 		} catch (Exception e) { sendError(resp, 500, e); return; }

@@ -33,12 +33,19 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
       bpartnerId: card!.bpartnerId || undefined,
       bpartnerName: card!.bpartnerName || '',
       productId: card!.productId || undefined,
+      productName: (card as any).productName || '',
       orderId: card!.orderId || undefined,
+      orderName: (card as any).orderName || '',
       invoiceId: card!.invoiceId || undefined,
+      invoiceName: (card as any).invoiceName || '',
       paymentId: card!.paymentId || undefined,
+      paymentName: (card as any).paymentName || '',
       projectId: card!.projectId || undefined,
+      projectName: (card as any).projectName || '',
       campaignId: card!.campaignId || undefined,
+      campaignName: (card as any).campaignName || '',
       assetId: card!.assetId || undefined,
+      assetName: (card as any).assetName || '',
     });
     setEditing(true);
   }
@@ -160,26 +167,26 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 value={form.bpartnerId as number | undefined} valueName={form.bpartnerName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, bpartnerId: id, bpartnerName: name }))} />
               <SearchSelect table="M_Product" label="Product"
-                value={form.productId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, productId: id }))} />
+                value={form.productId as number | undefined} valueName={form.productName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, productId: id, productName: name }))} />
               <SearchSelect table="C_Order" label="Order"
-                value={form.orderId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, orderId: id }))} />
+                value={form.orderId as number | undefined} valueName={form.orderName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, orderId: id, orderName: name }))} />
               <SearchSelect table="C_Invoice" label="Invoice"
-                value={form.invoiceId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, invoiceId: id }))} />
+                value={form.invoiceId as number | undefined} valueName={form.invoiceName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, invoiceId: id, invoiceName: name }))} />
               <SearchSelect table="C_Payment" label="Payment"
-                value={form.paymentId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, paymentId: id }))} />
+                value={form.paymentId as number | undefined} valueName={form.paymentName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, paymentId: id, paymentName: name }))} />
               <SearchSelect table="C_Project" label="Project"
-                value={form.projectId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, projectId: id }))} />
+                value={form.projectId as number | undefined} valueName={form.projectName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, projectId: id, projectName: name }))} />
               <SearchSelect table="C_Campaign" label="Campaign"
-                value={form.campaignId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, campaignId: id }))} />
+                value={form.campaignId as number | undefined} valueName={form.campaignName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, campaignId: id, campaignName: name }))} />
               <SearchSelect table="A_Asset" label="Asset"
-                value={form.assetId as number | undefined}
-                onChange={(id) => setForm((f) => ({ ...f, assetId: id }))} />
+                value={form.assetId as number | undefined} valueName={form.assetName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, assetId: id, assetName: name }))} />
             </div>
           </div>
         ) : (
