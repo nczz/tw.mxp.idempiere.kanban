@@ -437,6 +437,10 @@ public class CardsServlet extends HttpServlet {
 					if (json.has("requestTypeId")) request.setR_RequestType_ID(json.get("requestTypeId").getAsInt());
 					if (json.has("dateNextAction") && !json.get("dateNextAction").isJsonNull())
 						request.setDateNextAction(new Timestamp(json.get("dateNextAction").getAsLong()));
+					if (json.has("bpartnerId")) request.setC_BPartner_ID(json.get("bpartnerId").getAsInt());
+					if (json.has("productId")) request.setM_Product_ID(json.get("productId").getAsInt());
+					if (json.has("projectId")) request.setC_Project_ID(json.get("projectId").getAsInt());
+					if (json.has("campaignId")) request.setC_Campaign_ID(json.get("campaignId").getAsInt());
 					request.saveEx(trxName);
 
 					// Result is updated via direct SQL because MRequest.setResult()

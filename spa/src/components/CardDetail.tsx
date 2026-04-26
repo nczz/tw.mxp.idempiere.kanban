@@ -29,6 +29,8 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
       salesRepId: card!.salesRepId,
       requestTypeId: card!.requestTypeId,
       dateNextAction: card!.dateNextAction ? new Date(card!.dateNextAction).toISOString().slice(0, 16) : '',
+      bpartnerId: card!.bpartnerId || 0,
+      projectId: card!.projectId || 0,
     });
     setEditing(true);
   }
@@ -42,6 +44,8 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
     if (Number(form.salesRepId) !== card!.salesRepId) data.salesRepId = Number(form.salesRepId);
     if (Number(form.requestTypeId) !== card!.requestTypeId) data.requestTypeId = Number(form.requestTypeId);
     if (form.dateNextAction) data.dateNextAction = new Date(form.dateNextAction as string).getTime();
+    if (Number(form.bpartnerId) !== (card!.bpartnerId || 0)) data.bpartnerId = Number(form.bpartnerId);
+    if (Number(form.projectId) !== (card!.projectId || 0)) data.projectId = Number(form.projectId);
 
     updateCard.mutate(data as { id: number }, {
       onSuccess: () => setEditing(false),
@@ -134,6 +138,23 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               <div className="col-span-2">
                 <label className="text-xs text-gray-500">Date Next Action</label>
                 <input type="datetime-local" value={form.dateNextAction as string} onChange={set('dateNextAction')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
+              </div>
+            </div>
+            {/* ERP Links (edit) */}
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div>
+                <label className="text-xs text-gray-500">Business Partner</label>
+                <select value={form.bpartnerId as number} onChange={set('bpartnerId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
+                  <option value="0">— None —</option>
+                  {init.bpartners.map((bp) => <option key={bp.id} value={bp.id}>{bp.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Project</label>
+                <select value={form.projectId as number} onChange={set('projectId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
+                  <option value="0">— None —</option>
+                  {init.projects.map((pj) => <option key={pj.id} value={pj.id}>{pj.name}</option>)}
+                </select>
               </div>
             </div>
           </div>

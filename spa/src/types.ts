@@ -38,10 +38,22 @@ export interface SalesRep {
   name: string;
 }
 
+export interface BPartner {
+  id: number;
+  name: string;
+}
+
+export interface Project {
+  id: number;
+  name: string;
+}
+
 export interface InitData {
   statuses: Status[];
   requestTypes: RequestType[];
   priorities: Priority[];
   salesReps: SalesRep[];
+  bpartners: BPartner[];
+  projects: Project[];
   user: { id: number; name: string; roleId: number };
 }

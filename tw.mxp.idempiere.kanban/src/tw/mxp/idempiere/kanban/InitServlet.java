@@ -123,6 +123,40 @@ public class InitServlet extends HttpServlet {
 		} catch (Exception e) { /* non-critical */ }
 		result.add("salesReps", salesReps);
 
+		// Active BPartners for this client
+		JsonArray bpartners = new JsonArray();
+		String bpSql = "SELECT C_BPartner_ID, Name FROM C_BPartner "
+				+ "WHERE AD_Client_ID=? AND IsActive='Y' ORDER BY Name";
+		try (PreparedStatement pstmt = DB.prepareStatement(bpSql, null)) {
+			pstmt.setInt(1, clientId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					JsonObject bp = new JsonObject();
+					bp.addProperty("id", rs.getInt("C_BPartner_ID"));
+					bp.addProperty("name", rs.getString("Name"));
+					bpartners.add(bp);
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("bpartners", bpartners);
+
+		// Active Projects for this client
+		JsonArray projects = new JsonArray();
+		String pjSql = "SELECT C_Project_ID, Name FROM C_Project "
+				+ "WHERE AD_Client_ID IN (0, ?) AND IsActive='Y' ORDER BY Name";
+		try (PreparedStatement pstmt = DB.prepareStatement(pjSql, null)) {
+			pstmt.setInt(1, clientId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					JsonObject pj = new JsonObject();
+					pj.addProperty("id", rs.getInt("C_Project_ID"));
+					pj.addProperty("name", rs.getString("Name"));
+					projects.add(pj);
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("projects", projects);
+
 		// Current user info
 		JsonObject user = new JsonObject();
 		user.addProperty("id", userId);
