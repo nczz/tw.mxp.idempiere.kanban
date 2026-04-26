@@ -71,6 +71,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				DB.executeUpdate("UPDATE AD_Table SET IsChangeLog='Y' WHERE TableName='R_Request' AND IsChangeLog='N'", false, null);
 				recordMigration("1.4.0");
 			}
+			if (!isMigrationApplied("1.5.0")) {
+				ensureMessages();
+				recordMigration("1.5.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
