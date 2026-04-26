@@ -96,6 +96,16 @@ export function SettingsDialog({ onClose, onSaved, onError }: Props) {
     } catch (e: any) { onError(e.message); }
   }
 
+  async function swapStatus(idxA: number, idxB: number) {
+    const a = managedStatuses[idxA], b = managedStatuses[idxB];
+    if (!a || !b) return;
+    try {
+      await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ updateStatus: { id: a.id, name: a.name, seqNo: b.seqNo, isOpen: a.isOpen, isClosed: a.isClosed, isFinalClose: a.isFinalClose || false } }) });
+      await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ updateStatus: { id: b.id, name: b.name, seqNo: a.seqNo, isOpen: b.isOpen, isClosed: b.isClosed, isFinalClose: b.isFinalClose || false } }) });
+      refresh(); onSaved();
+    } catch (e: any) { onError(e.message); }
+  }
+
   const tabs = [
     { key: 'source', label: t('KanbanBoardSource') },
     { key: 'status', label: t('KanbanStatusManagement') },
@@ -154,9 +164,14 @@ export function SettingsDialog({ onClose, onSaved, onError }: Props) {
           {tab === 'status' && (
             <div>
               <div className="space-y-2 mb-3">
-                {managedStatuses.map((s) => (
+                {managedStatuses.map((s, idx) => (
                   <div key={s.id} className="flex items-center gap-2 bg-gray-50 rounded p-2">
-                    <span className="text-xs w-6 text-gray-400">{s.seqNo}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <button disabled={idx === 0} onClick={() => swapStatus(idx, idx - 1)}
+                        className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-20 leading-none">▲</button>
+                      <button disabled={idx === managedStatuses.length - 1} onClick={() => swapStatus(idx, idx + 1)}
+                        className="text-xs text-gray-400 hover:text-gray-700 disabled:opacity-20 leading-none">▼</button>
+                    </div>
                     <input defaultValue={s.name} className="flex-1 border rounded px-2 py-1 text-sm"
                       onBlur={(e) => { if (e.target.value !== s.name) updateStatus(s, { name: e.target.value }); }}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) (e.target as HTMLInputElement).blur(); }} />
