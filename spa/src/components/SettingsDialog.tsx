@@ -6,14 +6,13 @@ import type { InitData, Status } from '../types';
 
 interface Props {
   init: InitData;
-  statuses: Status[];
   onClose: () => void;
   onSaved: () => void;
   onError: (msg: string) => void;
 }
 
-export function SettingsDialog({ init, statuses, onClose, onSaved, onError }: Props) {
-  const [tab, setTab] = useState<'source' | 'status' | 'wip' | 'colors'>('source');
+export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
+  const [tab, setTab] = useState<'source' | 'status' | 'colors'>('source');
   const [activeRtId, setActiveRtId] = useState(String(init.activeRequestTypeId || ''));
   const [wipLimits, setWipLimits] = useState<Record<string, string>>(() => {
     const m: Record<string, string> = {};
@@ -25,7 +24,6 @@ export function SettingsDialog({ init, statuses, onClose, onSaved, onError }: Pr
   const [newStatusType, setNewStatusType] = useState('open');
   const [saving, setSaving] = useState(false);
 
-  // Get the active request type's status category
   const activeRt = init.requestTypes.find((rt) => rt.id === Number(activeRtId));
   const managedStatuses = activeRt
     ? init.statuses.filter((s) => s.statusCategoryId === activeRt.statusCategoryId)
@@ -94,16 +92,13 @@ export function SettingsDialog({ init, statuses, onClose, onSaved, onError }: Pr
   const tabs = [
     { key: 'source', label: t('KanbanBoardSource') },
     { key: 'status', label: t('KanbanStatusManagement') },
-    { key: 'wip', label: t('KanbanWipLimits') },
     { key: 'colors', label: t('KanbanPriorityColors') },
   ] as const;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-[560px] max-w-[90vw] max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-lg shadow-xl w-[600px] max-w-[90vw] max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="text-sm font-semibold text-gray-700 p-4 pb-0">{t('KanbanSettings')}</div>
-
-        {/* Tabs */}
         <div className="flex border-b px-4 mt-2">
           {tabs.map((tb) => (
             <button key={tb.key} onClick={() => setTab(tb.key)}
@@ -122,31 +117,32 @@ export function SettingsDialog({ init, statuses, onClose, onSaved, onError }: Pr
                 className="w-full border rounded px-2 py-1.5 text-sm mt-1">
                 {init.requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
               </select>
-              <p className="text-xs text-gray-400 mt-2">
-                {t('KanbanBoardSource')}: {activeRt?.name || '—'}
-              </p>
             </div>
           )}
 
-          {/* Status Management */}
+          {/* Status Management + WIP (merged) */}
           {tab === 'status' && (
             <div>
               <div className="space-y-2 mb-3">
                 {managedStatuses.map((s) => (
                   <div key={s.id} className="flex items-center gap-2 bg-gray-50 rounded p-2">
                     <span className="text-xs w-6 text-gray-400">{s.seqNo}</span>
-                    <input value={s.name} className="flex-1 border rounded px-2 py-1 text-sm"
+                    <input defaultValue={s.name} className="flex-1 border rounded px-2 py-1 text-sm"
                       onBlur={(e) => { if (e.target.value !== s.name) updateStatus(s, { name: e.target.value }); }}
-                      onChange={() => {}} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) (e.target as HTMLInputElement).blur(); }} />
                     <select value={s.isFinalClose ? 'final' : s.isClosed ? 'closed' : 'open'}
                       onChange={(e) => {
                         const v = e.target.value;
                         updateStatus(s, { isOpen: v === 'open', isClosed: v === 'closed' || v === 'final', isFinalClose: v === 'final' });
-                      }} className="text-xs border rounded px-1 py-1">
+                      }} className="text-xs border rounded px-1 py-1 w-24">
                       <option value="open">🟢 {t('KanbanStatusOpen')}</option>
                       <option value="closed">🔴 {t('KanbanStatusClosed')}</option>
                       <option value="final">⛔ {t('KanbanStatusFinalClose')}</option>
                     </select>
+                    <input type="number" min="0" placeholder="WIP"
+                      value={wipLimits[String(s.id)] || ''}
+                      onChange={(e) => setWipLimits((prev) => ({ ...prev, [String(s.id)]: e.target.value }))}
+                      className="w-16 border rounded px-1 py-1 text-xs text-center" title="WIP Limit (0=∞)" />
                     <button onClick={() => { if (confirm(t('KanbanDeleteStatus') + '?')) deleteStatus(s.id); }}
                       className="text-xs text-red-400 hover:text-red-600">✕</button>
                   </div>
@@ -166,22 +162,6 @@ export function SettingsDialog({ init, statuses, onClose, onSaved, onError }: Pr
                   {t('KanbanAddStatus')}
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* WIP Limits */}
-          {tab === 'wip' && (
-            <div className="space-y-1">
-              {statuses.map((s) => (
-                <div key={s.id} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 w-40 truncate">{s.name}</span>
-                  <input type="number" min="0" placeholder="0 = ∞"
-                    value={wipLimits[String(s.id)] || ''}
-                    onChange={(e) => setWipLimits((prev) => ({ ...prev, [String(s.id)]: e.target.value }))}
-                    className="w-20 border rounded px-2 py-1 text-sm text-center" />
-                  <span className="text-xs text-gray-400">{t('KanbanWipCards')}</span>
-                </div>
-              ))}
             </div>
           )}
 

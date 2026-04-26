@@ -24,7 +24,7 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanNoLinks': 'No linked records',
   'KanbanMoveHistory': 'Move History',
   'KanbanNoMoves': 'No moves recorded',
-  'KanbanEscalated': 'Escalated',
+  'KanbanEscalated': 'Blocked',
   // NewCardDialog
   'KanbanNewRequest': 'New Request',
   'KanbanSummary': 'Summary',

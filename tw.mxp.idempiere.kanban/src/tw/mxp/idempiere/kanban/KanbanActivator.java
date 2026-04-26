@@ -209,7 +209,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanCancel","Cancel","取消"},{"KanbanNotesResult","Notes / Result","備註 / 結果"},
 			{"KanbanNoNotes","No notes","無備註"},{"KanbanERPLinks","ERP Links","ERP 關聯"},
 			{"KanbanNoLinks","No linked records","無關聯記錄"},{"KanbanMoveHistory","Move History","移動歷程"},
-			{"KanbanNoMoves","No moves recorded","無移動記錄"},{"KanbanEscalated","Escalated","已升級"},
+			{"KanbanNoMoves","No moves recorded","無移動記錄"},{"KanbanEscalated","Blocked","已阻塞"},
 			{"KanbanNewRequest","New Request","新增需求"},{"KanbanSummary","Summary","摘要"},
 			{"KanbanCreate","Create","建立"},{"KanbanCreating","Creating...","建立中..."},
 			{"KanbanStatus","Status","狀態"},{"KanbanRequestType","Request Type","需求類型"},

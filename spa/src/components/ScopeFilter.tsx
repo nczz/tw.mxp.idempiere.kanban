@@ -26,7 +26,6 @@ export function ScopeFilter({ scope, onScopeChange, requestTypes, requestTypeId,
       </div>
       <select value={requestTypeId ?? ''} onChange={(e) => onRequestTypeChange(e.target.value ? Number(e.target.value) : undefined)}
         className="text-sm border border-gray-300 rounded px-2 py-1">
-        <option value="">{t('KanbanAllTypes')}</option>
         {requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
       </select>
     </>
