@@ -62,7 +62,7 @@ export interface InitData {
   salesReps: SalesRep[];
   bpartners: BPartner[];
   projects: Project[];
-  user: { id: number; name: string; roleId: number };
+  user: { id: number; name: string; roleId: number; orgId: number };
   orgs?: { id: number; name: string }[];
   messages?: Record<string, string>;
   wipLimits?: Record<string, number>;

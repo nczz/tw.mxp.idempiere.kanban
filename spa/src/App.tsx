@@ -76,6 +76,11 @@ function KanbanApp() {
     setRequestTypeId(init.activeRequestTypeId);
   }
 
+  // Set default org from login context
+  if (orgId === undefined && init.user.orgId > 0) {
+    setOrgId(init.user.orgId);
+  }
+
   const statusCategoryId = requestTypeId
     ? init.requestTypes.find((rt) => rt.id === requestTypeId)?.statusCategoryId
     : undefined;

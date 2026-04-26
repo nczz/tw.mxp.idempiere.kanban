@@ -202,6 +202,7 @@ public class InitServlet extends HttpServlet {
 		String userName = DB.getSQLValueStringEx(null, uSql, userId);
 		user.addProperty("name", userName != null ? userName : "");
 		user.addProperty("roleId", AuthContext.getRoleId(req));
+		user.addProperty("orgId", AuthContext.getOrgId(req));
 		result.add("user", user);
 
 		// i18n messages from AD_Message (keys starting with 'Kanban')
