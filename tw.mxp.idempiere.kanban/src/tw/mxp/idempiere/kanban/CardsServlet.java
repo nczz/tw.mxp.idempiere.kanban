@@ -412,13 +412,13 @@ public class CardsServlet extends HttpServlet {
 		int clientId = AuthContext.getClientId(req);
 		int userId = AuthContext.getUserId(req);
 
-		// Verify ownership
 		int cardClientId = DB.getSQLValueEx(null, "SELECT AD_Client_ID FROM R_Request WHERE R_Request_ID=?", cardId);
 		if (cardClientId != clientId) { resp.setStatus(403); resp.getWriter().print("{\"error\":\"Access denied\"}"); return; }
 
+		// Parse JSON body with Gson
 		StringBuilder body = new StringBuilder();
 		req.getReader().lines().forEach(body::append);
-		String json = body.toString();
+		JsonObject json = com.google.gson.JsonParser.parseString(body.toString()).getAsJsonObject();
 
 		try {
 			Properties ctx = Env.getCtx();
@@ -430,20 +430,20 @@ public class CardsServlet extends HttpServlet {
 				@Override
 				public void run(String trxName) {
 					MRequest request = new MRequest(Env.getCtx(), cardId, trxName);
-					// Update fields if present in JSON
-					String summary = extractString(json, "summary");
-					if (summary != null) request.setSummary(summary);
-					String result = extractString(json, "result");
-					if (result != null) request.setResult(result);
-					int priority = extractInt(json, "priority");
-					if (priority > 0) request.setPriority(String.valueOf(priority));
-					int statusId = extractInt(json, "statusId");
-					if (statusId > 0) request.setR_Status_ID(statusId);
-					int salesRepId = extractInt(json, "salesRepId");
-					if (salesRepId > 0) request.setSalesRep_ID(salesRepId);
-					int dateNA = extractInt(json, "dateNextAction");
-					if (dateNA > 0) request.setDateNextAction(new Timestamp(dateNA));
+					if (json.has("summary")) request.setSummary(json.get("summary").getAsString());
+					if (json.has("priority")) request.setPriority(json.get("priority").getAsString());
+					if (json.has("statusId")) request.setR_Status_ID(json.get("statusId").getAsInt());
+					if (json.has("salesRepId")) request.setSalesRep_ID(json.get("salesRepId").getAsInt());
+					if (json.has("dateNextAction") && !json.get("dateNextAction").isJsonNull())
+						request.setDateNextAction(new Timestamp(json.get("dateNextAction").getAsLong()));
 					request.saveEx(trxName);
+
+					// Result is updated via direct SQL because MRequest.setResult()
+					// writes to R_RequestUpdate, not R_Request.Result
+					if (json.has("result")) {
+						DB.executeUpdateEx("UPDATE R_Request SET Result=?, Updated=now(), UpdatedBy=? WHERE R_Request_ID=?",
+							new Object[]{json.get("result").getAsString(), userId, cardId}, trxName);
+					}
 				}
 			});
 		} catch (Exception e) { sendError(resp, 500, e); return; }
@@ -463,10 +463,10 @@ public class CardsServlet extends HttpServlet {
 
 		StringBuilder body = new StringBuilder();
 		req.getReader().lines().forEach(body::append);
-		String json = body.toString();
+		JsonObject json = com.google.gson.JsonParser.parseString(body.toString()).getAsJsonObject();
 
-		String summary = extractString(json, "summary");
-		if (summary == null || summary.isEmpty()) {
+		String summary = json.has("summary") ? json.get("summary").getAsString() : "";
+		if (summary.isEmpty()) {
 			resp.setStatus(400); resp.getWriter().print("{\"error\":\"Summary is required\"}"); return;
 		}
 
@@ -484,12 +484,9 @@ public class CardsServlet extends HttpServlet {
 					MRequest request = new MRequest(Env.getCtx(), 0, trxName);
 					request.setSummary(summary);
 					request.setSalesRep_ID(userId);
-					int rtId = extractInt(json, "requestTypeId");
-					if (rtId > 0) request.setR_RequestType_ID(rtId);
-					int bpId = extractInt(json, "bpartnerId");
-					if (bpId > 0) request.setC_BPartner_ID(bpId);
-					int priority = extractInt(json, "priority");
-					if (priority > 0) request.setPriority(String.valueOf(priority));
+					if (json.has("requestTypeId")) request.setR_RequestType_ID(json.get("requestTypeId").getAsInt());
+					if (json.has("bpartnerId")) request.setC_BPartner_ID(json.get("bpartnerId").getAsInt());
+					if (json.has("priority")) request.setPriority(json.get("priority").getAsString());
 					request.saveEx(trxName);
 					newId[0] = request.getR_Request_ID();
 				}

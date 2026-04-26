@@ -69,7 +69,10 @@ export function CardDetail({ cardId, onClose, onError }: Props) {
         ) : (
           <div className="mb-4">
             <div className="text-base font-medium text-gray-800 mb-1">{card.summary}</div>
-            {card.result && <div className="text-sm text-gray-600 bg-gray-50 rounded p-2">{card.result}</div>}
+            <div className="text-xs text-gray-400 mb-1">Notes / Result</div>
+            <div className="text-sm text-gray-600 bg-gray-50 rounded p-2 min-h-[2rem] whitespace-pre-wrap">
+              {card.result || <span className="text-gray-300 italic">No notes</span>}
+            </div>
           </div>
         )}
 
