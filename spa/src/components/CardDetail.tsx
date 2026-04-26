@@ -1,7 +1,7 @@
 import { t } from "../i18n";
 import { useState, useRef } from 'react';
 import { useCardDetail, useUpdateCard, useAddComment, useUploadAttachment, useDeleteAttachment } from '../hooks/useCards';
-import { zoomRecord } from '../api';
+import { zoomRecord, downloadFile } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
 import { SearchSelect } from './SearchSelect';
 import type { InitData } from '../types';
@@ -265,10 +265,10 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             <div className="space-y-1">
               {card.attachments.map((a) => (
                 <div key={a.name} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
-                  <a href={`${window.location.origin}/${window.location.pathname.split('/')[1]}/attachments/${cardId}/${encodeURIComponent(a.name)}`}
-                    target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline truncate flex-1">
+                  <button onClick={() => downloadFile(`/attachments/${cardId}/${encodeURIComponent(a.name)}`, a.name)}
+                    className="text-xs text-blue-600 hover:underline truncate flex-1 text-left">
                     📄 {a.name} <span className="text-gray-400">({(a.size / 1024).toFixed(1)}KB)</span>
-                  </a>
+                  </button>
                   <button onClick={() => { if (confirm(t("KanbanDeleteConfirm"))) deleteAtt.mutate({ cardId, name: a.name }); }}
                     className="text-xs text-red-400 hover:text-red-600 ml-2">✕</button>
                 </div>

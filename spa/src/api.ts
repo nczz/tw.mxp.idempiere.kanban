@@ -36,6 +36,22 @@ export function hasToken() {
   return token.length > 0;
 }
 
+/** Download a file with JWT auth → triggers browser download */
+export function downloadFile(path: string, fileName: string) {
+  fetch(contextPath + path, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+    .then((res) => { if (!res.ok) throw new Error('Download failed'); return res.blob(); })
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+}
+
 /** Trigger zoom in iDempiere ZK desktop */
 export function zoomRecord(tableName: string, recordId: number) {
   window.parent.postMessage({ type: 'zoom', tableName, recordId: String(recordId) }, '*');
