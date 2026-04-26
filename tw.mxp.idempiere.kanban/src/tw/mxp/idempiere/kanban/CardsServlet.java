@@ -599,6 +599,7 @@ public class CardsServlet extends HttpServlet {
 				@Override
 				public void run(String trxName) {
 					MRequest request = new MRequest(Env.getCtx(), cardId, trxName);
+					int oldStatusId = request.getR_Status_ID();
 					if (json.has("summary")) request.setSummary(json.get("summary").getAsString());
 					if (json.has("priority")) request.setPriority(json.get("priority").getAsString());
 					if (json.has("statusId")) request.setR_Status_ID(json.get("statusId").getAsInt());
@@ -622,6 +623,19 @@ public class CardsServlet extends HttpServlet {
 					if (json.has("assetId")) request.set_ValueOfColumn("A_Asset_ID", json.get("assetId").getAsInt() > 0 ? json.get("assetId").getAsInt() : null);
 					if (json.has("activityId")) request.set_ValueOfColumn("C_Activity_ID", json.get("activityId").getAsInt() > 0 ? json.get("activityId").getAsInt() : null);
 					request.saveEx(trxName);
+
+					// Write move log if status changed
+					int newStatusId = request.getR_Status_ID();
+					if (newStatusId != oldStatusId) {
+						int logId = DB.getNextID(clientId, "RK_Card_Move_Log", trxName);
+						DB.executeUpdateEx("INSERT INTO RK_Card_Move_Log "
+							+ "(RK_Card_Move_Log_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+							+ "Created, CreatedBy, Updated, UpdatedBy, "
+							+ "R_Request_ID, R_Status_ID_From, R_Status_ID_To) "
+							+ "VALUES (?, ?, ?, 'Y', statement_timestamp(), ?, statement_timestamp(), ?, ?, ?, ?)",
+							new Object[]{logId, clientId, AuthContext.getOrgId(req), userId, userId,
+								cardId, oldStatusId, newStatusId}, trxName);
+					}
 
 					// Result is updated via direct SQL because MRequest.setResult()
 					// writes to R_RequestUpdate, not R_Request.Result
