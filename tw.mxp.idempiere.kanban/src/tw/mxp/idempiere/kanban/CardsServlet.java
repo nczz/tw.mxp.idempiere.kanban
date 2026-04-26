@@ -684,6 +684,7 @@ public class CardsServlet extends HttpServlet {
 					request.setSummary(summary);
 					request.setSalesRep_ID(userId);
 					if (json.has("requestTypeId")) request.setR_RequestType_ID(json.get("requestTypeId").getAsInt());
+					if (json.has("statusId")) request.setR_Status_ID(json.get("statusId").getAsInt());
 					if (json.has("bpartnerId")) request.setC_BPartner_ID(json.get("bpartnerId").getAsInt());
 					if (json.has("priority")) request.setPriority(json.get("priority").getAsString());
 					if (json.has("salesRepId")) request.setSalesRep_ID(json.get("salesRepId").getAsInt());

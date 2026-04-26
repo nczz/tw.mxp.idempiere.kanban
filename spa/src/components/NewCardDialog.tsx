@@ -15,6 +15,11 @@ export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onErro
   const [summary, setSummary] = useState('');
   const [result, setResult] = useState('');
   const [requestTypeId, setRequestTypeId] = useState<string>(String(activeRtId || init.requestTypes[0]?.id || ''));
+  const activeRt = init.requestTypes.find((rt) => rt.id === Number(requestTypeId));
+  const availableStatuses = activeRt
+    ? init.statuses.filter((s) => s.statusCategoryId === activeRt.statusCategoryId && !s.isClosed)
+    : init.statuses.filter((s) => !s.isClosed);
+  const [statusId, setStatusId] = useState<string>(availableStatuses[0]?.id?.toString() || '');
   const [priority, setPriority] = useState('5');
   const [salesRepId, setSalesRepId] = useState<string>(init.user.id.toString());
   const [dateNextAction, setDateNextAction] = useState('');
@@ -29,6 +34,7 @@ export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onErro
         summary: summary.trim(),
         result: result.trim() || undefined,
         requestTypeId: requestTypeId ? Number(requestTypeId) : undefined,
+        statusId: statusId ? Number(statusId) : undefined,
         priority: Number(priority),
         salesRepId: salesRepId ? Number(salesRepId) : undefined,
         dateNextAction: dateNextAction ? new Date(dateNextAction).getTime() : undefined,
@@ -66,10 +72,17 @@ export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onErro
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-500">{t("KanbanRequestType")}</label>
-              <select value={requestTypeId} onChange={(e) => setRequestTypeId(e.target.value)}
+              <select value={requestTypeId} onChange={(e) => { setRequestTypeId(e.target.value); setStatusId(''); }}
                 className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
                 <option value="">{t("KanbanSelectNone")}</option>
                 {init.requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-gray-500">{t("KanbanStatus")}</label>
+              <select value={statusId} onChange={(e) => setStatusId(e.target.value)}
+                className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
+                {availableStatuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
