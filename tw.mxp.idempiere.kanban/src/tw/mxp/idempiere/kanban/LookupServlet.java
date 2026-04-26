@@ -35,6 +35,7 @@ public class LookupServlet extends HttpServlet {
 		TABLES.put("C_Project",   new String[]{"C_Project_ID",   "Name", ""});
 		TABLES.put("C_Campaign",  new String[]{"C_Campaign_ID",  "Name", ""});
 		TABLES.put("A_Asset",     new String[]{"A_Asset_ID",     "Name", ""});
+		TABLES.put("C_Activity",  new String[]{"C_Activity_ID",  "Name", ""});
 	}
 
 	@Override

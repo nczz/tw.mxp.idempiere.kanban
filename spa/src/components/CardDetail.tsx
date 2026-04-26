@@ -46,6 +46,8 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
       campaignName: (card as any).campaignName || '',
       assetId: card!.assetId || undefined,
       assetName: (card as any).assetName || '',
+      activityId: card!.activityId || undefined,
+      activityName: (card as any).activityName || '',
     });
     setEditing(true);
   }
@@ -60,7 +62,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
     if (Number(form.requestTypeId) !== card!.requestTypeId) data.requestTypeId = Number(form.requestTypeId);
     if (form.dateNextAction) data.dateNextAction = new Date(form.dateNextAction as string).getTime();
     // ERP links
-    const fkFields = ['bpartnerId','productId','orderId','invoiceId','paymentId','projectId','campaignId','assetId'];
+    const fkFields = ['bpartnerId','productId','orderId','invoiceId','paymentId','projectId','campaignId','assetId','activityId'];
     for (const fk of fkFields) {
       const newVal = (form[fk] as number | undefined) || 0;
       const oldVal = ((card as unknown as Record<string, unknown>)[fk] as number | undefined) || 0;
@@ -187,6 +189,9 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               <SearchSelect table="A_Asset" label="Asset"
                 value={form.assetId as number | undefined} valueName={form.assetName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, assetId: id, assetName: name }))} />
+              <SearchSelect table="C_Activity" label="Activity"
+                value={form.activityId as number | undefined} valueName={form.activityName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, activityId: id, activityName: name }))} />
             </div>
           </div>
         ) : (
@@ -224,6 +229,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             {card.projectId && <ZoomChip label="📁 Project" table="C_Project" id={card.projectId} />}
             {card.campaignId && <ZoomChip label="📣 Campaign" table="C_Campaign" id={card.campaignId} />}
             {card.assetId && <ZoomChip label="🔧 Asset" table="A_Asset" id={card.assetId} />}
+            {(card as any).activityId && <ZoomChip label="📊 Activity" table="C_Activity" id={(card as any).activityId} />}
             {!card.bpartnerId && !card.productId && !card.orderId && !card.invoiceId &&
              !card.projectId && <span className="text-xs text-gray-400">No linked records</span>}
           </div>

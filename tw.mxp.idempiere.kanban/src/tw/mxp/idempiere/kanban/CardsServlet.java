@@ -308,7 +308,7 @@ public class CardsServlet extends HttpServlet {
 			+ "r.Priority, r.PriorityUser, r.DueType, r.DateNextAction, r.StartDate, r.EndTime, r.CloseDate, "
 			+ "r.SalesRep_ID, r.AD_User_ID, r.CreatedBy, r.Created, "
 			+ "r.C_BPartner_ID, r.M_Product_ID, r.C_Order_ID, r.C_Invoice_ID, "
-			+ "r.C_Payment_ID, r.C_Project_ID, r.C_Campaign_ID, r.A_Asset_ID, "
+			+ "r.C_Payment_ID, r.C_Project_ID, r.C_Campaign_ID, r.A_Asset_ID, r.C_Activity_ID, "
 			+ "r.IsEscalated, "
 			+ "COALESCE(bp.Name,'') AS BPartnerName, "
 			+ "COALESCE(pd.Name,'') AS ProductName, "
@@ -318,6 +318,7 @@ public class CardsServlet extends HttpServlet {
 			+ "COALESCE(pj.Name,'') AS ProjectName, "
 			+ "COALESCE(cp.Name,'') AS CampaignName, "
 			+ "COALESCE(ast.Name,'') AS AssetName, "
+			+ "COALESCE(act.Name,'') AS ActivityName, "
 			+ "COALESCE(rt.Name,'') AS RequestTypeName, "
 			+ "COALESCE(sr.Name,'') AS SalesRepName, "
 			+ "COALESCE(req.Name,'') AS RequesterName, "
@@ -333,6 +334,7 @@ public class CardsServlet extends HttpServlet {
 			+ "LEFT JOIN C_Project pj ON r.C_Project_ID=pj.C_Project_ID "
 			+ "LEFT JOIN C_Campaign cp ON r.C_Campaign_ID=cp.C_Campaign_ID "
 			+ "LEFT JOIN A_Asset ast ON r.A_Asset_ID=ast.A_Asset_ID "
+			+ "LEFT JOIN C_Activity act ON r.C_Activity_ID=act.C_Activity_ID "
 			+ "LEFT JOIN R_RequestType rt ON r.R_RequestType_ID=rt.R_RequestType_ID "
 			+ "LEFT JOIN AD_User sr ON r.SalesRep_ID=sr.AD_User_ID "
 			+ "LEFT JOIN AD_User req ON r.AD_User_ID=req.AD_User_ID "
@@ -387,6 +389,8 @@ public class CardsServlet extends HttpServlet {
 					card.addProperty("campaignName", rs.getString("CampaignName"));
 					addFk(card, "assetId", rs, "A_Asset_ID");
 					card.addProperty("assetName", rs.getString("AssetName"));
+					addFk(card, "activityId", rs, "C_Activity_ID");
+					card.addProperty("activityName", rs.getString("ActivityName"));
 				}
 			}
 		} catch (Exception e) { sendError(resp, 500, e); return; }
@@ -466,6 +470,7 @@ public class CardsServlet extends HttpServlet {
 					if (json.has("projectId")) request.setC_Project_ID(json.get("projectId").getAsInt());
 					if (json.has("campaignId")) request.setC_Campaign_ID(json.get("campaignId").getAsInt());
 					if (json.has("assetId")) request.set_ValueOfColumn("A_Asset_ID", json.get("assetId").getAsInt() > 0 ? json.get("assetId").getAsInt() : null);
+					if (json.has("activityId")) request.set_ValueOfColumn("C_Activity_ID", json.get("activityId").getAsInt() > 0 ? json.get("activityId").getAsInt() : null);
 					request.saveEx(trxName);
 
 					// Result is updated via direct SQL because MRequest.setResult()
