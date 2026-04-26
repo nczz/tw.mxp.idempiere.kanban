@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
+    immediate="true" name="tw.mxp.idempiere.kanban.KanbanFormFactory">
+    <service>
+        <provide interface="org.adempiere.webui.factory.IFormFactory"/>
+    </service>
+    <property name="service.ranking" type="Integer" value="100"/>
+    <implementation class="tw.mxp.idempiere.kanban.KanbanFormFactory"/>
+</scr:component>

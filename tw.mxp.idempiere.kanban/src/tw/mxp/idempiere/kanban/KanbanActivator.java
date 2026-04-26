@@ -4,11 +4,9 @@ import java.util.logging.Level;
 
 import org.adempiere.base.Core;
 import org.adempiere.plugin.utils.Incremental2PackActivator;
-import org.adempiere.webui.factory.IMappedFormFactory;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 /**
  * Plugin activator following the same pattern as the official REST API plugin:
@@ -24,18 +22,14 @@ public class KanbanActivator extends Incremental2PackActivator {
 
 	@Override
 	public void start(BundleContext context) throws Exception {
-		// Register factories BEFORE super.start() — same pattern as REST API
-		Core.getMappedModelFactory().scan(context, "tw.mxp.idempiere.kanban");
+		// Model factory scan — use try/catch for v11/v12 compatibility
 		try {
-			ServiceReference<?> ref = context.getServiceReference(IMappedFormFactory.class.getName());
-			if (ref != null) {
-				IMappedFormFactory factory = (IMappedFormFactory) context.getService(ref);
-				if (factory != null)
-					factory.scan(context, "tw.mxp.idempiere.kanban");
-			}
+			Core.getMappedModelFactory().scan(context, "tw.mxp.idempiere.kanban");
 		} catch (Exception e) {
-			log.log(Level.WARNING, "IMappedFormFactory not available", e);
+			log.log(Level.FINE, "IMappedModelFactory.scan not available (pre-v14)", e);
 		}
+		// Form factory is handled by KanbanFormFactory (AnnotationBasedFormFactory)
+		// — no scan() needed, works on v11-v14
 
 		super.start(context); // processes 2Pack ZIPs + calls afterPackIn()
 	}
