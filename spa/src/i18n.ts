@@ -74,6 +74,11 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanDeleteConfirm': 'Delete this file?',
   'KanbanViewBoard': 'Board',
   'KanbanViewGantt': 'Gantt',
+  'KanbanSettings': 'Settings',
+  'KanbanWipLimits': 'WIP Limits (per column)',
+  'KanbanWipCards': 'cards',
+  'KanbanWipExceeded': 'WIP limit reached for this column',
+  'KanbanPriorityColors': 'Priority Colors',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };

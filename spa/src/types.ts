@@ -58,4 +58,6 @@ export interface InitData {
   projects: Project[];
   user: { id: number; name: string; roleId: number };
   messages?: Record<string, string>;
+  wipLimits?: Record<string, number>;
+  priorityColors?: Record<string, string>;
 }

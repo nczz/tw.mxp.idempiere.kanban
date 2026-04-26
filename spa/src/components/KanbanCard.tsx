@@ -1,4 +1,4 @@
-import { priorityColor, priorityLabel, dueColor } from '../utils/priority';
+import { priorityHex, priorityLabel, dueColor } from '../utils/priority';
 import type { Card } from '../types';
 
 export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: boolean }) {
@@ -23,7 +23,8 @@ export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: bool
             </span>
           )}
           {card.priority && (
-            <span className={`text-xs text-white px-1.5 py-0.5 rounded ${priorityColor(card.priority)}`}>
+            <span className="text-xs text-white px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: priorityHex(card.priority) }}>
               {priorityLabel(card.priority)}
             </span>
           )}

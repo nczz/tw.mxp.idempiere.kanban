@@ -109,6 +109,11 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanDeleteConfirm", "Delete this file?", "確定刪除此檔案？"},
 			{"KanbanViewBoard", "Board", "看板"},
 			{"KanbanViewGantt", "Gantt", "甘特圖"},
+			{"KanbanSettings", "Settings", "設定"},
+			{"KanbanWipLimits", "WIP Limits (per column)", "WIP 限制（每欄）"},
+			{"KanbanWipCards", "cards", "張卡片"},
+			{"KanbanWipExceeded", "WIP limit reached for this column", "此欄已達 WIP 上限"},
+			{"KanbanPriorityColors", "Priority Colors", "優先級顏色"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

@@ -5,9 +5,11 @@ import { GanttView } from './components/GanttView';
 import { ScopeFilter } from './components/ScopeFilter';
 import { CardDetail } from './components/CardDetail';
 import { NewCardDialog } from './components/NewCardDialog';
+import { SettingsDialog } from './components/SettingsDialog';
 import { useInit, useCards } from './hooks/useCards';
 import { hasToken } from './api';
 import { setMessages, t } from './i18n';
+import { setPriorityColors } from './utils/priority';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -21,6 +23,7 @@ function KanbanApp() {
   const [view, setView] = useState<'kanban' | 'gantt'>('kanban');
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'error' | 'info' } | null>(null);
 
   const { data: init, isLoading: initLoading, error: initError } = useInit();
@@ -62,6 +65,7 @@ function KanbanApp() {
 
   // Initialize i18n with server translations
   if (init.messages) setMessages(init.messages as unknown as Record<string, string>);
+  if (init.priorityColors) setPriorityColors(init.priorityColors);
 
   const statusCategoryId = requestTypeId
     ? init.requestTypes.find((rt) => rt.id === requestTypeId)?.statusCategoryId
@@ -103,6 +107,10 @@ function KanbanApp() {
           className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
           {t('KanbanNew')}
         </button>
+        <button onClick={() => setShowSettings(true)}
+          className="text-sm bg-gray-200 text-gray-600 px-2 py-1 rounded hover:bg-gray-300" title={t('KanbanSettings')}>
+          ⚙️
+        </button>
       </div>
 
       {/* Board */}
@@ -117,6 +125,7 @@ function KanbanApp() {
             cards={cardsData?.cards || []}
             onError={showToast}
             onCardClick={setSelectedCardId}
+            wipLimits={init.wipLimits}
           />
         )}
       </div>
@@ -136,6 +145,12 @@ function KanbanApp() {
           onClose={() => setShowNewCard(false)}
           onError={showToast}
         />
+      )}
+      {showSettings && (
+        <SettingsDialog init={init} statuses={init.statuses}
+          onClose={() => setShowSettings(false)}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ['init'] })}
+          onError={showToast} />
       )}
 
       {/* Toast */}

@@ -186,6 +186,34 @@ public class InitServlet extends HttpServlet {
 		} catch (Exception e) { /* non-critical */ }
 		result.add("messages", messages);
 
+		// WIP limits from AD_SysConfig (KANBAN_WIP_{statusId})
+		JsonObject wipLimits = new JsonObject();
+		String wipSql = "SELECT Name, Value FROM AD_SysConfig WHERE Name LIKE 'KANBAN_WIP_%' AND AD_Client_ID IN (0, ?) AND IsActive='Y'";
+		try (PreparedStatement pstmt = DB.prepareStatement(wipSql, null)) {
+			pstmt.setInt(1, clientId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					String key = rs.getString("Name").replace("KANBAN_WIP_", "");
+					try { wipLimits.addProperty(key, Integer.parseInt(rs.getString("Value"))); } catch (Exception ignored) {}
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("wipLimits", wipLimits);
+
+		// Priority colors from AD_SysConfig (KANBAN_COLOR_P{value})
+		JsonObject priorityColors = new JsonObject();
+		String pcSql = "SELECT Name, Value FROM AD_SysConfig WHERE Name LIKE 'KANBAN_COLOR_P%' AND AD_Client_ID IN (0, ?) AND IsActive='Y'";
+		try (PreparedStatement pstmt = DB.prepareStatement(pcSql, null)) {
+			pstmt.setInt(1, clientId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					String key = rs.getString("Name").replace("KANBAN_COLOR_P", "");
+					priorityColors.addProperty(key, rs.getString("Value"));
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("priorityColors", priorityColors);
+
 		resp.getWriter().print(result.toString());
 	}
 

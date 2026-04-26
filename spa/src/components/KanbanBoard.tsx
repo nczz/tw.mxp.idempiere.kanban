@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { t } from '../i18n';
 import { useState } from 'react';
 import {
   DndContext, DragOverlay, closestCorners, PointerSensor,
@@ -14,9 +15,10 @@ interface Props {
   cards: Card[];
   onError: (msg: string) => void;
   onCardClick: (id: number) => void;
+  wipLimits?: Record<string, number>;
 }
 
-export function KanbanBoard({ statuses, cards, onError, onCardClick }: Props) {
+export function KanbanBoard({ statuses, cards, onError, onCardClick, wipLimits }: Props) {
   const moveCard = useMoveCard();
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -49,6 +51,16 @@ export function KanbanBoard({ statuses, cards, onError, onCardClick }: Props) {
     }
     if (!targetStatusId || targetStatusId === card.statusId) return;
 
+    // WIP limit check
+    const limit = wipLimits?.[String(targetStatusId)];
+    if (limit && limit > 0) {
+      const targetCount = (cardsByStatus.get(targetStatusId) || []).length;
+      if (targetCount >= limit) {
+        onError(t('KanbanWipExceeded'));
+        return;
+      }
+    }
+
     moveCard.mutate({ id: card.id, targetStatusId }, {
       onError: (err) => onError(`Move failed: ${err.message}`),
     });
@@ -60,7 +72,8 @@ export function KanbanBoard({ statuses, cards, onError, onCardClick }: Props) {
       <div className="flex gap-4 overflow-x-auto p-4 h-full items-start">
         {statuses.map((status) => (
           <KanbanColumn key={status.id} status={status}
-            cards={cardsByStatus.get(status.id) || []} onCardClick={onCardClick} />
+            cards={cardsByStatus.get(status.id) || []} onCardClick={onCardClick}
+            wipLimit={wipLimits?.[String(status.id)]} />
         ))}
         {statuses.length === 0 && (
           <div className="flex items-center justify-center w-full h-full text-gray-400">
