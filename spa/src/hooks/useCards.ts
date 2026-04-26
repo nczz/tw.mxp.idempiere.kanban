@@ -5,8 +5,9 @@ import type { Card, InitData } from '../types';
 export function useInit() {
   return useQuery<InitData>({
     queryKey: ['init'],
-    queryFn: () => kanbanFetch('/init').then((r) => r.json()),
+    queryFn: () => kanbanFetch<InitData>('/init'),
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -16,7 +17,8 @@ export function useCards(scope: string, requestTypeId?: number) {
 
   return useQuery<{ cards: Card[] }>({
     queryKey: ['cards', scope, requestTypeId],
-    queryFn: () => kanbanFetch(`/cards?${params}`).then((r) => r.json()),
+    queryFn: () => kanbanFetch<{ cards: Card[] }>(`/cards?${params}`),
+    refetchInterval: 30000, // fallback polling every 30s if server push fails
   });
 }
 
@@ -25,19 +27,15 @@ export function useMoveCard() {
 
   return useMutation({
     mutationFn: ({ id, targetStatusId }: { id: number; targetStatusId: number }) =>
-      kanbanFetch(`/cards/${id}/move`, {
+      kanbanFetch<{ success: boolean }>(`/cards/${id}/move`, {
         method: 'POST',
         body: JSON.stringify({ targetStatusId }),
-      }).then((r) => {
-        if (!r.ok) throw new Error('Move failed');
-        return r.json();
       }),
 
     onMutate: async ({ id, targetStatusId }) => {
       await qc.cancelQueries({ queryKey: ['cards'] });
       const prev = qc.getQueriesData<{ cards: Card[] }>({ queryKey: ['cards'] });
 
-      // Optimistic update across all card queries
       qc.setQueriesData<{ cards: Card[] }>({ queryKey: ['cards'] }, (old) => {
         if (!old) return old;
         return {
@@ -49,7 +47,6 @@ export function useMoveCard() {
     },
 
     onError: (_err, _vars, context) => {
-      // Rollback all card queries
       context?.prev?.forEach(([key, data]) => {
         if (data) qc.setQueryData(key, data);
       });

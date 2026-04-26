@@ -9,25 +9,31 @@ window.addEventListener('message', (e) => {
   }
 });
 
-export function kanbanFetch(path: string, opts?: RequestInit): Promise<Response> {
-  return fetch(contextPath + path, {
+export async function kanbanFetch<T = unknown>(path: string, opts?: RequestInit): Promise<T> {
+  const res = await fetch(contextPath + path, {
     ...opts,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...opts?.headers,
     },
-  }).then((res) => {
-    if (res.status === 401) {
-      // Request token refresh from ZK parent
-      window.parent.postMessage({ type: 'refresh-token' }, '*');
-    }
-    return res;
   });
+
+  if (res.status === 401) {
+    window.parent.postMessage({ type: 'refresh-token' }, '*');
+    throw new Error('Authentication required. Please reopen the form.');
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
 }
 
-export function getToken() {
-  return token;
+export function hasToken() {
+  return token.length > 0;
 }
 
 /** Trigger zoom in iDempiere ZK desktop */
