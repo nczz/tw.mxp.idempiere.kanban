@@ -263,7 +263,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanComments")}</div>
           <div className="flex gap-2 mb-2">
             <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && commentText.trim()) { addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); } }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && commentText.trim()) { addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); } }}
               placeholder={t("KanbanAddComment")} className="flex-1 border rounded px-2 py-1 text-sm" />
             <button onClick={() => { if (commentText.trim()) addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); }}
               disabled={!commentText.trim() || addComment.isPending}
