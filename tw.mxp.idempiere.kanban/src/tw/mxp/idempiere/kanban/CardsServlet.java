@@ -91,17 +91,19 @@ public class CardsServlet extends HttpServlet {
 
 		sql.append("SELECT r.R_Request_ID, r.DocumentNo, r.Summary, r.R_Status_ID, ");
 		sql.append("r.Priority, r.DueType, r.DateNextAction, r.SalesRep_ID, ");
-		sql.append("r.R_RequestType_ID, r.C_BPartner_ID, r.IsEscalated, ");
+		sql.append("r.R_RequestType_ID, r.C_BPartner_ID, r.C_Project_ID, r.IsEscalated, ");
 		sql.append("s.Name AS StatusName, s.SeqNo AS StatusSeqNo, ");
 		sql.append("COALESCE(bp.Name, '') AS BPartnerName, ");
 		sql.append("COALESCE(rt.Name, '') AS RequestTypeName, ");
 		sql.append("COALESCE(u.Name, '') AS SalesRepName, ");
+		sql.append("COALESCE(pj.Name, '') AS ProjectName, ");
 		sql.append("(SELECT MAX(l.Created) FROM RK_Card_Move_Log l WHERE l.R_Request_ID=r.R_Request_ID) AS LastMoveAt ");
 		sql.append("FROM R_Request r ");
 		sql.append("JOIN R_Status s ON r.R_Status_ID = s.R_Status_ID ");
 		sql.append("LEFT JOIN C_BPartner bp ON r.C_BPartner_ID = bp.C_BPartner_ID ");
 		sql.append("LEFT JOIN R_RequestType rt ON r.R_RequestType_ID = rt.R_RequestType_ID ");
 		sql.append("LEFT JOIN AD_User u ON r.SalesRep_ID = u.AD_User_ID ");
+		sql.append("LEFT JOIN C_Project pj ON r.C_Project_ID = pj.C_Project_ID ");
 		sql.append("WHERE r.AD_Client_ID = ? ");
 		params.add(clientId);
 
@@ -184,7 +186,10 @@ public class CardsServlet extends HttpServlet {
 					}
 					card.addProperty("salesRepId", rs.getInt("SalesRep_ID"));
 					card.addProperty("salesRepName", rs.getString("SalesRepName"));
+					card.addProperty("bpartnerId", rs.getInt("C_BPartner_ID"));
 					card.addProperty("bpartnerName", rs.getString("BPartnerName"));
+					card.addProperty("projectId", rs.getInt("C_Project_ID"));
+					card.addProperty("projectName", rs.getString("ProjectName"));
 					card.addProperty("requestTypeName", rs.getString("RequestTypeName"));
 					card.addProperty("isEscalated", "Y".equals(rs.getString("IsEscalated")));
 					Timestamp lastMove = rs.getTimestamp("LastMoveAt");

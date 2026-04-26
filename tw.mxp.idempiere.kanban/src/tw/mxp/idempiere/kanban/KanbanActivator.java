@@ -61,6 +61,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				DB.executeUpdate("UPDATE AD_Sequence SET Prefix='REQ' WHERE Name LIKE 'DocumentNo_R_Request%' AND (Prefix IS NULL OR Prefix='')", false, null);
 				recordMigration("1.2.0");
 			}
+			if (!isMigrationApplied("1.3.0")) {
+				ensureMessages(); // adds any new messages (idempotent)
+				recordMigration("1.3.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -261,6 +265,11 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanDescribeRequest","Describe the request...","描述需求..."},
 			{"KanbanAdditionalDetails","Additional details...","補充說明..."},
 			{"KanbanSelectNone","— Select —","— 選擇 —"},{"KanbanNone","— None —","— 無 —"},
+			// Swimlanes
+			{"KanbanGroupBy","Group","分組"},{"KanbanGroupNone","None","無"},
+			{"KanbanGroupProject","Project","專案"},{"KanbanGroupSalesRep","Sales Rep","負責人"},
+			{"KanbanGroupBPartner","Business Partner","業務夥伴"},{"KanbanGroupPriority","Priority","優先級"},
+			{"KanbanUngrouped","Ungrouped","未分組"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

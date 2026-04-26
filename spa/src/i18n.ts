@@ -98,6 +98,14 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanCannotDelete': 'Cannot delete: cards use this status',
   'KanbanFinalCloseWarning': 'This will permanently close the card. It cannot be reopened. Continue?',
   'KanbanCardClosed': 'Card moved to closed status',
+  // Swimlanes
+  'KanbanGroupBy': 'Group',
+  'KanbanGroupNone': 'None',
+  'KanbanGroupProject': 'Project',
+  'KanbanGroupSalesRep': 'Sales Rep',
+  'KanbanGroupBPartner': 'Business Partner',
+  'KanbanGroupPriority': 'Priority',
+  'KanbanUngrouped': 'Ungrouped',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };

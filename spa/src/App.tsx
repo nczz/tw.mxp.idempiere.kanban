@@ -22,6 +22,7 @@ function KanbanApp() {
   const [search, setSearch] = useState('');
   const [showClosed, setShowClosed] = useState(false);
   const [view, setView] = useState<'kanban' | 'gantt' | 'metrics'>('kanban');
+  const [groupBy, setGroupBy] = useState<'none' | 'project' | 'salesRep' | 'bpartner' | 'priority'>('none');
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -90,6 +91,16 @@ function KanbanApp() {
           requestTypeId={requestTypeId} onRequestTypeChange={setRequestTypeId}
         />
         <div className="flex-1" />
+        {view === 'kanban' && (
+          <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
+            className="text-xs border border-gray-300 rounded px-2 py-1">
+            <option value="none">{t('KanbanGroupBy')}: {t('KanbanGroupNone')}</option>
+            <option value="project">{t('KanbanGroupProject')}</option>
+            <option value="salesRep">{t('KanbanGroupSalesRep')}</option>
+            <option value="bpartner">{t('KanbanGroupBPartner')}</option>
+            <option value="priority">{t('KanbanGroupPriority')}</option>
+          </select>
+        )}
         <button onClick={() => setShowClosed(!showClosed)}
           className={`text-xs px-3 py-1 rounded ${showClosed ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           {showClosed ? t('KanbanClosed') : t('KanbanOpen')}
@@ -138,6 +149,7 @@ function KanbanApp() {
             onError={showToast}
             onCardClick={setSelectedCardId}
             wipLimits={init.wipLimits}
+            groupBy={groupBy}
           />
         )}
       </div>

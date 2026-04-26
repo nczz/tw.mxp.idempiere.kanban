@@ -35,12 +35,12 @@ export interface CardDetail extends Card {
   requesterName: string;
   createdBy: number;
   creatorName: string;
-  bpartnerId?: number;
+  bpartnerId: number;
   productId?: number;
   orderId?: number;
   invoiceId?: number;
   paymentId?: number;
-  projectId?: number;
+  projectId: number;
   campaignId?: number;
   assetId?: number;
   activityId?: number;
@@ -48,7 +48,7 @@ export interface CardDetail extends Card {
   orderName?: string;
   invoiceName?: string;
   paymentName?: string;
-  projectName?: string;
+  projectName: string;
   campaignName?: string;
   assetName?: string;
   activityName?: string;

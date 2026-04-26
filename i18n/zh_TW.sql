@@ -101,3 +101,12 @@ WHERE AD_Language='zh_TW' AND AD_Menu_ID=(SELECT AD_Menu_ID FROM AD_Menu WHERE A
 -- AD_Form 翻譯
 UPDATE AD_Form_Trl SET Name='需求看板', Description='iDempiere 需求工單看板管理', IsTranslated='Y'
 WHERE AD_Language='zh_TW' AND AD_Form_ID=(SELECT AD_Form_ID FROM AD_Form WHERE AD_Form_UU='tw-mxp-idempiere-kanban-form-001');
+
+-- Swimlanes (Phase 4)
+UPDATE AD_Message_Trl SET MsgText='分組', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupBy');
+UPDATE AD_Message_Trl SET MsgText='無', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupNone');
+UPDATE AD_Message_Trl SET MsgText='專案', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupProject');
+UPDATE AD_Message_Trl SET MsgText='負責人', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupSalesRep');
+UPDATE AD_Message_Trl SET MsgText='業務夥伴', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupBPartner');
+UPDATE AD_Message_Trl SET MsgText='優先級', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupPriority');
+UPDATE AD_Message_Trl SET MsgText='未分組', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanUngrouped');

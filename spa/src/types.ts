@@ -9,7 +9,10 @@ export interface Card {
   dateNextAction: number | null;
   salesRepId: number;
   salesRepName: string;
+  bpartnerId: number;
   bpartnerName: string;
+  projectId: number;
+  projectName: string;
   requestTypeName: string;
   lastMoveAt?: number;
   isEscalated?: boolean;
