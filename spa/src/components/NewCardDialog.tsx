@@ -50,43 +50,43 @@ export function NewCardDialog({ init, onClose, onError }: Props) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl w-[520px] max-w-[90vw] max-h-[85vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="text-sm font-semibold text-gray-700 mb-3">New Request</div>
+        <div className="text-sm font-semibold text-gray-700 mb-3">{t("KanbanNewRequest")}</div>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="text-xs text-gray-500">Summary *</label>
+            <label className="text-xs text-gray-500">{t("KanbanSummary")} *</label>
             <input value={summary} onChange={(e) => setSummary(e.target.value)}
-              className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" autoFocus placeholder="Describe the request..." />
+              className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" autoFocus placeholder={t("KanbanDescribeRequest")} />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Notes / Result</label>
+            <label className="text-xs text-gray-500">{t("KanbanNotesResult")}</label>
             <textarea value={result} onChange={(e) => setResult(e.target.value)}
-              className="w-full border rounded px-2 py-1.5 text-sm mt-0.5 h-16" placeholder="Additional details..." />
+              className="w-full border rounded px-2 py-1.5 text-sm mt-0.5 h-16" placeholder={t("KanbanAdditionalDetails")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500">Request Type</label>
+              <label className="text-xs text-gray-500">{t("KanbanRequestType")}</label>
               <select value={requestTypeId} onChange={(e) => setRequestTypeId(e.target.value)}
                 className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
-                <option value="">— Select —</option>
+                <option value="">{t("KanbanSelectNone")}</option>
                 {init.requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">Priority</label>
+              <label className="text-xs text-gray-500">{t("KanbanPriority")}</label>
               <select value={priority} onChange={(e) => setPriority(e.target.value)}
                 className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
                 {init.priorities.map((p) => <option key={p.value} value={p.value}>{p.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">Sales Rep</label>
+              <label className="text-xs text-gray-500">{t("KanbanSalesRep")}</label>
               <select value={salesRepId} onChange={(e) => setSalesRepId(e.target.value)}
                 className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
                 {init.salesReps.map((sr) => <option key={sr.id} value={sr.id}>{sr.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">Date Next Action</label>
+              <label className="text-xs text-gray-500">{t("KanbanDateNextAction")}</label>
               <input type="datetime-local" value={dateNextAction} onChange={(e) => setDateNextAction(e.target.value)}
                 className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" />
             </div>

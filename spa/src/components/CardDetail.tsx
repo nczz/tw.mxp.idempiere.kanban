@@ -117,12 +117,12 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               <input value={form.summary as string} onChange={set('summary')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
             </div>
             <div>
-              <label className="text-xs text-gray-500">Notes / Result</label>
+              <label className="text-xs text-gray-500">{t("KanbanNotesResult")}</label>
               <textarea value={form.result as string} onChange={set('result')} className="w-full border rounded px-2 py-1 text-sm mt-0.5 h-20" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500">Priority</label>
+                <label className="text-xs text-gray-500">{t("KanbanPriority")}</label>
                 <select value={form.priority as string} onChange={set('priority')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
                   {init.priorities.map((p) => <option key={p.value} value={p.value}>{p.name}</option>)}
                 </select>
@@ -134,13 +134,13 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">Sales Rep</label>
+                <label className="text-xs text-gray-500">{t("KanbanSalesRep")}</label>
                 <select value={form.salesRepId as number} onChange={set('salesRepId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
                   {init.salesReps.map((sr) => <option key={sr.id} value={sr.id}>{sr.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">Request Type</label>
+                <label className="text-xs text-gray-500">{t("KanbanRequestType")}</label>
                 <select value={form.requestTypeId as number} onChange={(e) => {
                   const newRtId = Number(e.target.value);
                   setForm((f) => {
