@@ -1,7 +1,7 @@
 # tw.mxp.idempiere.kanban — 專案狀態
 
 > 最後更新：2026-04-26 22:30
-> GitHub: https://github.com/nczz/tw.mxp.idempiere.kanban
+> GitHub: https://github.com/nczz/idempiere-kanban
 > iDempiere 相容：v11 ✅ v12 ✅ v13 ✅ v14 ✅
 
 ## 已完成功能
