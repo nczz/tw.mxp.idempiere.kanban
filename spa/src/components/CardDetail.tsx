@@ -2,46 +2,68 @@ import { useState } from 'react';
 import { useCardDetail, useUpdateCard } from '../hooks/useCards';
 import { zoomRecord } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
+import type { InitData } from '../types';
 
 interface Props {
   cardId: number;
+  init: InitData;
   onClose: () => void;
   onError: (msg: string) => void;
 }
 
-export function CardDetail({ cardId, onClose, onError }: Props) {
+export function CardDetail({ cardId, init, onClose, onError }: Props) {
   const { data: card, isLoading } = useCardDetail(cardId);
   const updateCard = useUpdateCard();
   const [editing, setEditing] = useState(false);
-  const [summary, setSummary] = useState('');
-  const [result, setResult] = useState('');
+  const [form, setForm] = useState<Record<string, unknown>>({});
 
   if (isLoading) return <Modal onClose={onClose}><div className="p-8 text-center text-gray-400">Loading...</div></Modal>;
   if (!card) return <Modal onClose={onClose}><div className="p-8 text-center text-red-500">Card not found</div></Modal>;
 
   function startEdit() {
-    setSummary(card!.summary);
-    setResult(card!.result || '');
+    setForm({
+      summary: card!.summary,
+      result: card!.result || '',
+      priority: card!.priority,
+      statusId: card!.statusId,
+      salesRepId: card!.salesRepId,
+      requestTypeId: card!.requestTypeId,
+      dateNextAction: card!.dateNextAction ? new Date(card!.dateNextAction).toISOString().slice(0, 16) : '',
+    });
     setEditing(true);
   }
 
   function saveEdit() {
-    updateCard.mutate(
-      { id: cardId, summary, result },
-      {
-        onSuccess: () => setEditing(false),
-        onError: (e) => onError(e.message),
-      }
-    );
+    const data: Record<string, unknown> = { id: cardId };
+    if (form.summary !== card!.summary) data.summary = form.summary;
+    if (form.result !== (card!.result || '')) data.result = form.result;
+    if (form.priority !== card!.priority) data.priority = form.priority;
+    if (Number(form.statusId) !== card!.statusId) data.statusId = Number(form.statusId);
+    if (Number(form.salesRepId) !== card!.salesRepId) data.salesRepId = Number(form.salesRepId);
+    if (form.dateNextAction) data.dateNextAction = new Date(form.dateNextAction as string).getTime();
+
+    updateCard.mutate(data as { id: number }, {
+      onSuccess: () => setEditing(false),
+      onError: (e) => onError(e.message),
+    });
   }
 
+  const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+
   const fmtDate = (ts: number | null) => ts ? new Date(ts).toLocaleString() : '—';
+
+  // Filter statuses by same category as current request type
+  const rt = init.requestTypes.find((r) => r.id === card.requestTypeId);
+  const availableStatuses = rt
+    ? init.statuses.filter((s) => s.statusCategoryId === rt.statusCategoryId)
+    : init.statuses;
 
   return (
     <Modal onClose={onClose}>
       <div className="max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400 font-mono">{card.documentNo}</span>
             {card.priority && (
@@ -53,43 +75,78 @@ export function CardDetail({ cardId, onClose, onError }: Props) {
           </div>
           <div className="flex gap-2">
             {!editing && <button onClick={startEdit} className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>}
-            {editing && <button onClick={saveEdit} className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600" disabled={updateCard.isPending}>Save</button>}
+            {editing && <button onClick={saveEdit} disabled={updateCard.isPending} className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50">{updateCard.isPending ? 'Saving...' : 'Save'}</button>}
             {editing && <button onClick={() => setEditing(false)} className="text-xs bg-gray-300 text-gray-700 px-3 py-1 rounded">Cancel</button>}
           </div>
         </div>
 
-        {/* Summary + Result */}
         {editing ? (
-          <div className="space-y-2 mb-4">
-            <input value={summary} onChange={(e) => setSummary(e.target.value)}
-              className="w-full border rounded px-2 py-1 text-sm" placeholder="Summary" />
-            <textarea value={result} onChange={(e) => setResult(e.target.value)}
-              className="w-full border rounded px-2 py-1 text-sm h-20" placeholder="Notes / Result" />
-          </div>
-        ) : (
-          <div className="mb-4">
-            <div className="text-base font-medium text-gray-800 mb-1">{card.summary}</div>
-            <div className="text-xs text-gray-400 mb-1">Notes / Result</div>
-            <div className="text-sm text-gray-600 bg-gray-50 rounded p-2 min-h-[2rem] whitespace-pre-wrap">
-              {card.result || <span className="text-gray-300 italic">No notes</span>}
+          /* ===== EDIT MODE ===== */
+          <div className="space-y-3 mb-4">
+            <div>
+              <label className="text-xs text-gray-500">Summary</label>
+              <input value={form.summary as string} onChange={set('summary')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500">Notes / Result</label>
+              <textarea value={form.result as string} onChange={set('result')} className="w-full border rounded px-2 py-1 text-sm mt-0.5 h-20" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-500">Priority</label>
+                <select value={form.priority as string} onChange={set('priority')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
+                  {init.priorities.map((p) => <option key={p.value} value={p.value}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Status</label>
+                <select value={form.statusId as number} onChange={set('statusId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
+                  {availableStatuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Sales Rep</label>
+                <select value={form.salesRepId as number} onChange={set('salesRepId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
+                  {init.salesReps.map((sr) => <option key={sr.id} value={sr.id}>{sr.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Request Type</label>
+                <select value={form.requestTypeId as number} onChange={set('requestTypeId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" disabled>
+                  {init.requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="text-xs text-gray-500">Date Next Action</label>
+                <input type="datetime-local" value={form.dateNextAction as string} onChange={set('dateNextAction')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
+              </div>
             </div>
           </div>
+        ) : (
+          /* ===== VIEW MODE ===== */
+          <>
+            <div className="text-base font-medium text-gray-800 mb-1">{card.summary}</div>
+            <div className="text-xs text-gray-400 mb-1">Notes / Result</div>
+            <div className="text-sm text-gray-600 bg-gray-50 rounded p-2 min-h-[2rem] whitespace-pre-wrap mb-3">
+              {card.result || <span className="text-gray-300 italic">No notes</span>}
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3">
+              <Field label="Status" value={card.statusName} />
+              <Field label="Request Type" value={card.requestTypeName} />
+              <Field label="Priority" value={priorityLabel(card.priority)} />
+              <Field label="Sales Rep" value={card.salesRepName} />
+              <Field label="Requester" value={card.requesterName} />
+              <Field label="Created By" value={card.creatorName} />
+              <Field label="Created" value={fmtDate(card.created)} />
+              <Field label="Next Action" value={fmtDate(card.dateNextAction)} />
+              <Field label="Start Date" value={fmtDate(card.startDate)} />
+              {card.closeDate && <Field label="Close Date" value={fmtDate(card.closeDate)} />}
+            </div>
+          </>
         )}
 
-        {/* Info grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-4">
-          <Field label="Status" value={card.statusName} />
-          <Field label="Request Type" value={card.requestTypeName} />
-          <Field label="Sales Rep" value={card.salesRepName} />
-          <Field label="Requester" value={card.requesterName} />
-          <Field label="Created By" value={card.creatorName} />
-          <Field label="Created" value={fmtDate(card.created)} />
-          <Field label="Next Action" value={fmtDate(card.dateNextAction)} />
-          <Field label="Start Date" value={fmtDate(card.startDate)} />
-        </div>
-
         {/* ERP Links */}
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="text-xs font-semibold text-gray-500 mb-1">ERP Links</div>
           <div className="flex flex-wrap gap-1">
             {card.bpartnerId && <ZoomChip label={`🏢 ${card.bpartnerName}`} table="C_BPartner" id={card.bpartnerId} />}
@@ -116,7 +173,6 @@ export function CardDetail({ cardId, onClose, onError }: Props) {
                 <div key={i} className="text-xs flex items-center gap-2 text-gray-600">
                   <span className="text-gray-400 w-32 flex-shrink-0">{new Date(h.date).toLocaleString()}</span>
                   <span className="font-medium">{h.userName}</span>
-                  <span>moved</span>
                   <span className="bg-gray-100 px-1 rounded">{h.fromStatus || '—'}</span>
                   <span>→</span>
                   <span className="bg-blue-100 px-1 rounded">{h.toStatus}</span>
@@ -151,10 +207,8 @@ function Field({ label, value }: { label: string; value: string }) {
 
 function ZoomChip({ label, table, id }: { label: string; table: string; id: number }) {
   return (
-    <button
-      onClick={() => zoomRecord(table, id)}
-      className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors"
-    >
+    <button onClick={() => zoomRecord(table, id)}
+      className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors">
       {label}
     </button>
   );

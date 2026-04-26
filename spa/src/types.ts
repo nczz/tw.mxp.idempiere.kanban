@@ -28,8 +28,20 @@ export interface RequestType {
   statusCategoryId: number;
 }
 
+export interface Priority {
+  value: string;
+  name: string;
+}
+
+export interface SalesRep {
+  id: number;
+  name: string;
+}
+
 export interface InitData {
   statuses: Status[];
   requestTypes: RequestType[];
+  priorities: Priority[];
+  salesReps: SalesRep[];
   user: { id: number; name: string; roleId: number };
 }

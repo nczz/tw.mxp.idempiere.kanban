@@ -102,13 +102,14 @@ function KanbanApp() {
       {selectedCardId && (
         <CardDetail
           cardId={selectedCardId}
+          init={init}
           onClose={() => setSelectedCardId(null)}
           onError={showToast}
         />
       )}
       {showNewCard && (
         <NewCardDialog
-          requestTypes={init.requestTypes}
+          init={init}
           onClose={() => setShowNewCard(false)}
           onError={showToast}
         />

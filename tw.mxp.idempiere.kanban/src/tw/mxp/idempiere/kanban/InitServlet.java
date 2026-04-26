@@ -82,6 +82,47 @@ public class InitServlet extends HttpServlet {
 		}
 		result.add("statuses", statuses);
 
+		// Priorities from AD_Ref_List (Reference: R_Request Priority)
+		JsonArray priorities = new JsonArray();
+		String prSql = "SELECT Value, Name FROM AD_Ref_List WHERE AD_Reference_ID="
+				+ "(SELECT AD_Reference_ID FROM AD_Reference WHERE Name='_PriorityRule' AND IsActive='Y') "
+				+ "AND IsActive='Y' ORDER BY Value";
+		try (PreparedStatement pstmt = DB.prepareStatement(prSql, null)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					JsonObject p = new JsonObject();
+					p.addProperty("value", rs.getString("Value"));
+					p.addProperty("name", rs.getString("Name"));
+					priorities.add(p);
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		// Fallback if reference not found
+		if (priorities.size() == 0) {
+			for (String[] pv : new String[][]{{"1","Urgent"},{"3","High"},{"5","Medium"},{"7","Low"},{"9","Minor"}}) {
+				JsonObject p = new JsonObject(); p.addProperty("value", pv[0]); p.addProperty("name", pv[1]); priorities.add(p);
+			}
+		}
+		result.add("priorities", priorities);
+
+		// Sales reps (active users in this client)
+		JsonArray salesReps = new JsonArray();
+		String srSql = "SELECT AD_User_ID, Name FROM AD_User "
+				+ "WHERE AD_Client_ID IN (0, ?) AND IsActive='Y' AND Name IS NOT NULL "
+				+ "ORDER BY Name";
+		try (PreparedStatement pstmt = DB.prepareStatement(srSql, null)) {
+			pstmt.setInt(1, clientId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					JsonObject sr = new JsonObject();
+					sr.addProperty("id", rs.getInt("AD_User_ID"));
+					sr.addProperty("name", rs.getString("Name"));
+					salesReps.add(sr);
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("salesReps", salesReps);
+
 		// Current user info
 		JsonObject user = new JsonObject();
 		user.addProperty("id", userId);
