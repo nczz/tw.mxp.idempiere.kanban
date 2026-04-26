@@ -6,14 +6,15 @@ import type { InitData } from '../types';
 
 interface Props {
   init: InitData;
+  requestTypeId?: number;
   onClose: () => void;
   onError: (msg: string) => void;
 }
 
-export function NewCardDialog({ init, onClose, onError }: Props) {
+export function NewCardDialog({ init, requestTypeId: activeRtId, onClose, onError }: Props) {
   const [summary, setSummary] = useState('');
   const [result, setResult] = useState('');
-  const [requestTypeId, setRequestTypeId] = useState<string>(init.requestTypes[0]?.id?.toString() || '');
+  const [requestTypeId, setRequestTypeId] = useState<string>(String(activeRtId || init.requestTypes[0]?.id || ''));
   const [priority, setPriority] = useState('5');
   const [salesRepId, setSalesRepId] = useState<string>(init.user.id.toString());
   const [dateNextAction, setDateNextAction] = useState('');
@@ -79,11 +80,10 @@ export function NewCardDialog({ init, onClose, onError }: Props) {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">{t("KanbanSalesRep")}</label>
-              <select value={salesRepId} onChange={(e) => setSalesRepId(e.target.value)}
-                className="w-full border rounded px-2 py-1.5 text-sm mt-0.5">
-                {init.salesReps.map((sr) => <option key={sr.id} value={sr.id}>{sr.name}</option>)}
-              </select>
+              <SearchSelect table="AD_User" label={t("KanbanSalesRep")}
+                value={salesRepId ? Number(salesRepId) : undefined}
+                valueName={init.user.name}
+                onChange={(id) => setSalesRepId(id ? String(id) : '')} />
             </div>
             <div>
               <label className="text-xs text-gray-500">{t("KanbanDateNextAction")}</label>

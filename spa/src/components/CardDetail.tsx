@@ -147,10 +147,9 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">{t("KanbanSalesRep")}</label>
-                <select value={form.salesRepId as number} onChange={set('salesRepId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
-                  {init.salesReps.map((sr) => <option key={sr.id} value={sr.id}>{sr.name}</option>)}
-                </select>
+                <SearchSelect table="AD_User" label={t("KanbanSalesRep")}
+                  value={form.salesRepId as number} valueName={card.salesRepName}
+                  onChange={(id) => setForm((f) => ({ ...f, salesRepId: id || 0 }))} />
               </div>
               <div>
                 <label className="text-xs text-gray-500">{t("KanbanRequestType")}</label>

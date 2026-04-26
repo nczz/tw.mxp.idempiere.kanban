@@ -168,6 +168,7 @@ function KanbanApp() {
       {showNewCard && (
         <NewCardDialog
           init={init}
+          requestTypeId={requestTypeId}
           onClose={() => setShowNewCard(false)}
           onError={showToast}
         />
