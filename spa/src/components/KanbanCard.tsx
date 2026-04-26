@@ -3,18 +3,31 @@ import type { Card } from '../types';
 
 export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: boolean }) {
   const dna = card.dateNextAction ? new Date(card.dateNextAction).toLocaleDateString() : '';
+  const stale = getStaleInfo(card.lastMoveAt);
 
   return (
-    <div className={`bg-white rounded-lg shadow p-3 mb-2 border border-gray-200 transition-shadow ${
-      isDragging ? 'shadow-lg ring-2 ring-blue-400' : 'hover:shadow-md cursor-grab active:cursor-grabbing'
+    <div className={`bg-white rounded-lg shadow p-3 mb-2 border transition-shadow ${
+      isDragging ? 'shadow-lg ring-2 ring-blue-400 border-gray-200' :
+      stale.level === 'danger' ? 'border-red-300 hover:shadow-md cursor-grab active:cursor-grabbing' :
+      stale.level === 'warn' ? 'border-yellow-300 hover:shadow-md cursor-grab active:cursor-grabbing' :
+      'border-gray-200 hover:shadow-md cursor-grab active:cursor-grabbing'
     }`}>
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gray-400 font-mono">{card.documentNo}</span>
-        {card.priority && (
-          <span className={`text-xs text-white px-1.5 py-0.5 rounded ${priorityColor(card.priority)}`}>
-            {priorityLabel(card.priority)}
-          </span>
-        )}
+        <div className="flex items-center gap-1">
+          {stale.level !== 'ok' && (
+            <span className={`text-xs px-1 py-0.5 rounded ${
+              stale.level === 'danger' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'
+            }`} title={`Last moved ${stale.days}d ago`}>
+              🕐 {stale.days}d
+            </span>
+          )}
+          {card.priority && (
+            <span className={`text-xs text-white px-1.5 py-0.5 rounded ${priorityColor(card.priority)}`}>
+              {priorityLabel(card.priority)}
+            </span>
+          )}
+        </div>
       </div>
       <div className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">{card.summary}</div>
       {card.bpartnerName && (
@@ -31,4 +44,12 @@ export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: bool
       </div>
     </div>
   );
+}
+
+function getStaleInfo(lastMoveAt?: number): { level: 'ok' | 'warn' | 'danger'; days: number } {
+  if (!lastMoveAt) return { level: 'ok', days: 0 };
+  const days = Math.floor((Date.now() - lastMoveAt) / (1000 * 60 * 60 * 24));
+  if (days >= 7) return { level: 'danger', days };
+  if (days >= 3) return { level: 'warn', days };
+  return { level: 'ok', days };
 }

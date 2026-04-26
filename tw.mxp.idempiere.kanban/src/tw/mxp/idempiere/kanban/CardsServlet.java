@@ -53,6 +53,8 @@ public class CardsServlet extends HttpServlet {
 
 		if (pathInfo != null && pathInfo.endsWith("/move")) {
 			moveCard(req, resp, pathInfo);
+		} else if (pathInfo != null && pathInfo.equals("/reorder")) {
+			reorderCards(req, resp);
 		} else if (pathInfo == null || pathInfo.equals("/")) {
 			createCard(req, resp);
 		} else {
@@ -90,7 +92,8 @@ public class CardsServlet extends HttpServlet {
 		sql.append("s.Name AS StatusName, s.SeqNo AS StatusSeqNo, ");
 		sql.append("COALESCE(bp.Name, '') AS BPartnerName, ");
 		sql.append("COALESCE(rt.Name, '') AS RequestTypeName, ");
-		sql.append("COALESCE(u.Name, '') AS SalesRepName ");
+		sql.append("COALESCE(u.Name, '') AS SalesRepName, ");
+		sql.append("(SELECT MAX(l.Created) FROM RK_Card_Move_Log l WHERE l.R_Request_ID=r.R_Request_ID) AS LastMoveAt ");
 		sql.append("FROM R_Request r ");
 		sql.append("JOIN R_Status s ON r.R_Status_ID = s.R_Status_ID ");
 		sql.append("LEFT JOIN C_BPartner bp ON r.C_BPartner_ID = bp.C_BPartner_ID ");
@@ -153,7 +156,7 @@ public class CardsServlet extends HttpServlet {
 			params.add(like);
 		}
 
-		sql.append("ORDER BY s.SeqNo, r.Priority, r.DateNextAction NULLS LAST");
+		sql.append("ORDER BY s.SeqNo, r.X_KanbanSeqNo NULLS LAST, r.Priority, r.DateNextAction NULLS LAST");
 
 		JsonArray cards = new JsonArray();
 		try (PreparedStatement pstmt = DB.prepareStatement(sql.toString(), null)) {
@@ -180,6 +183,8 @@ public class CardsServlet extends HttpServlet {
 					card.addProperty("salesRepName", rs.getString("SalesRepName"));
 					card.addProperty("bpartnerName", rs.getString("BPartnerName"));
 					card.addProperty("requestTypeName", rs.getString("RequestTypeName"));
+					Timestamp lastMove = rs.getTimestamp("LastMoveAt");
+					if (lastMove != null) card.addProperty("lastMoveAt", lastMove.getTime());
 					cards.add(card);
 				}
 			}
@@ -286,6 +291,46 @@ public class CardsServlet extends HttpServlet {
 		}
 
 		resp.getWriter().print(result.toString());
+	}
+
+	// ============================================================
+	// POST /cards/reorder — update card order within a column
+	// body: {"cardIds": [id1, id2, id3, ...]}
+	// ============================================================
+	private void reorderCards(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		int clientId = AuthContext.getClientId(req);
+		int userId = AuthContext.getUserId(req);
+
+		StringBuilder body = new StringBuilder();
+		req.getReader().lines().forEach(body::append);
+		com.google.gson.JsonArray cardIds = com.google.gson.JsonParser.parseString(body.toString())
+			.getAsJsonObject().getAsJsonArray("cardIds");
+
+		if (cardIds == null || cardIds.size() == 0) {
+			resp.setStatus(400);
+			resp.getWriter().print("{\"error\":\"cardIds required\"}");
+			return;
+		}
+
+		try {
+			Properties ctx = Env.getCtx();
+			Env.setContext(ctx, "#AD_Client_ID", clientId);
+			Env.setContext(ctx, "#AD_User_ID", userId);
+
+			Trx.run(trxName -> {
+				for (int i = 0; i < cardIds.size(); i++) {
+					int cardId = cardIds.get(i).getAsInt();
+					DB.executeUpdateEx(
+						"UPDATE R_Request SET X_KanbanSeqNo=?, Updated=now(), UpdatedBy=? WHERE R_Request_ID=? AND AD_Client_ID=?",
+						new Object[]{(i + 1) * 10, userId, cardId, clientId}, trxName);
+				}
+			});
+		} catch (Exception e) {
+			sendError(resp, 500, e);
+			return;
+		}
+
+		resp.getWriter().print("{\"success\":true}");
 	}
 
 	private void sendError(HttpServletResponse resp, int status, Exception e) throws IOException {

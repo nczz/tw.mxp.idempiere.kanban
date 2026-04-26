@@ -75,6 +75,13 @@ public class KanbanActivator extends Incremental2PackActivator {
 			+ "R_RequestType_ID NUMERIC(10) NOT NULL, Default_AD_Role_ID NUMERIC(10), "
 			+ "Default_SalesRep_ID NUMERIC(10), "
 			+ "CONSTRAINT RK_Request_Type_Config_Key PRIMARY KEY (RK_Request_Type_Config_ID)");
+
+		// X_KanbanSeqNo column on R_Request (for in-column card ordering)
+		if (DB.getSQLValueEx(null,
+				"SELECT COUNT(*) FROM information_schema.columns WHERE LOWER(table_name)='r_request' AND LOWER(column_name)='x_kanbanseqno'") == 0) {
+			DB.executeUpdate("ALTER TABLE R_Request ADD COLUMN X_KanbanSeqNo NUMERIC(10) DEFAULT 0", false, null);
+			log.info("Added X_KanbanSeqNo column to R_Request");
+		}
 	}
 
 	private void createTableIfNotExists(String tableName, String columns) {

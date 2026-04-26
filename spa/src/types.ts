@@ -11,6 +11,7 @@ export interface Card {
   salesRepName: string;
   bpartnerName: string;
   requestTypeName: string;
+  lastMoveAt?: number;
 }
 
 export interface Status {
