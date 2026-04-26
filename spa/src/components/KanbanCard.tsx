@@ -1,11 +1,13 @@
 import { priorityColor, priorityLabel, dueColor } from '../utils/priority';
 import type { Card } from '../types';
 
-export function KanbanCard({ card }: { card: Card }) {
+export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: boolean }) {
   const dna = card.dateNextAction ? new Date(card.dateNextAction).toLocaleDateString() : '';
 
   return (
-    <div className="bg-white rounded-lg shadow p-3 mb-2 cursor-grab active:cursor-grabbing border border-gray-200 hover:shadow-md transition-shadow">
+    <div className={`bg-white rounded-lg shadow p-3 mb-2 border border-gray-200 transition-shadow ${
+      isDragging ? 'shadow-lg ring-2 ring-blue-400' : 'hover:shadow-md cursor-grab active:cursor-grabbing'
+    }`}>
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gray-400 font-mono">{card.documentNo}</span>
         {card.priority && (
