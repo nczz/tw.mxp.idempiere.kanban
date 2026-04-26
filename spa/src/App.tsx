@@ -175,7 +175,10 @@ function KanbanApp() {
       {showSettings && (
         <SettingsDialog init={init}
           onClose={() => setShowSettings(false)}
-          onSaved={() => queryClient.invalidateQueries({ queryKey: ['init'] })}
+          onSaved={(savedRequestTypeId) => {
+            queryClient.invalidateQueries({ queryKey: ['init'] });
+            if (savedRequestTypeId != null) setRequestTypeId(savedRequestTypeId);
+          }}
           onError={showToast} />
       )}
 

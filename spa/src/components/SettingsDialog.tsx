@@ -7,7 +7,7 @@ import type { InitData, Status } from '../types';
 interface Props {
   init: InitData;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (savedRequestTypeId?: number) => void;
   onError: (msg: string) => void;
 }
 
@@ -41,7 +41,7 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
         method: 'POST',
         body: JSON.stringify({ activeRequestTypeId: Number(activeRtId), wipLimits: wipData, priorityColors: colors }),
       });
-      onSaved();
+      onSaved(Number(activeRtId) || undefined);
       onClose();
     } catch (e: any) { onError(e.message); }
     setSaving(false);
