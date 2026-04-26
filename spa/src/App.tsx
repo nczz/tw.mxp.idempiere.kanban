@@ -10,7 +10,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { useInit, useCards } from './hooks/useCards';
 import { hasToken } from './api';
 import { setMessages, t } from './i18n';
-import { setPriorityColors } from './utils/priority';
+import { setPriorityColors, setPriorityLabels } from './utils/priority';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -68,6 +68,7 @@ function KanbanApp() {
   // Initialize i18n with server translations
   if (init.messages) setMessages(init.messages as unknown as Record<string, string>);
   if (init.priorityColors) setPriorityColors(init.priorityColors);
+  setPriorityLabels(Object.fromEntries(init.priorities.map((p) => [p.value, p.name])));
 
   // Set default request type from active board config
   if (!requestTypeId && init.activeRequestTypeId) {

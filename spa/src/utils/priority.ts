@@ -1,31 +1,26 @@
 let colors: Record<string, string> = {
-  '1': '#EF4444', // Urgent - red
-  '3': '#F97316', // High - orange
-  '5': '#3B82F6', // Medium - blue
-  '7': '#9CA3AF', // Low - gray
-  '9': '#D1D5DB', // Minor - light gray
+  '1': '#EF4444', '3': '#F97316', '5': '#3B82F6', '7': '#9CA3AF', '9': '#D1D5DB',
 };
 
-const LABELS: Record<string, string> = {
+let labels: Record<string, string> = {
   '1': 'Urgent', '3': 'High', '5': 'Medium', '7': 'Low', '9': 'Minor',
 };
 
-/** Initialize with server-provided colors */
 export function setPriorityColors(serverColors: Record<string, string>) {
   colors = { ...colors, ...serverColors };
+}
+
+/** Initialize with server-provided translated names */
+export function setPriorityLabels(serverLabels: Record<string, string>) {
+  labels = { ...labels, ...serverLabels };
 }
 
 export function priorityHex(p: string): string {
   return colors[p] || '#D1D5DB';
 }
 
-export function priorityColor(_p: string): string {
-  // Return Tailwind-compatible inline style instead of class
-  return ''; // Now using inline style with priorityHex
-}
-
 export function priorityLabel(p: string): string {
-  return LABELS[p] || p;
+  return labels[p] || p;
 }
 
 export function dueColor(dueType: string): string {
@@ -34,7 +29,8 @@ export function dueColor(dueType: string): string {
   return 'text-green-600';
 }
 
-/** Get all default colors for settings dialog */
+export function priorityColor(_p: string): string { return ''; }
+
 export function getDefaultColors(): Record<string, string> {
   return { ...colors };
 }
