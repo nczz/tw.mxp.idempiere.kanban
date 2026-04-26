@@ -43,6 +43,15 @@ export interface CardDetail extends Card {
   projectId?: number;
   campaignId?: number;
   assetId?: number;
+  activityId?: number;
+  productName?: string;
+  orderName?: string;
+  invoiceName?: string;
+  paymentName?: string;
+  projectName?: string;
+  campaignName?: string;
+  assetName?: string;
+  activityName?: string;
   moveHistory: { date: number; userName: string; fromStatus: string; toStatus: string; note: string }[];
 }
 

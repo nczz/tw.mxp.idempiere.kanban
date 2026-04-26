@@ -33,21 +33,21 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
       bpartnerId: card!.bpartnerId || undefined,
       bpartnerName: card!.bpartnerName || '',
       productId: card!.productId || undefined,
-      productName: (card as any).productName || '',
+      productName: card!.productName || '',
       orderId: card!.orderId || undefined,
-      orderName: (card as any).orderName || '',
+      orderName: card!.orderName || '',
       invoiceId: card!.invoiceId || undefined,
-      invoiceName: (card as any).invoiceName || '',
+      invoiceName: card!.invoiceName || '',
       paymentId: card!.paymentId || undefined,
-      paymentName: (card as any).paymentName || '',
+      paymentName: card!.paymentName || '',
       projectId: card!.projectId || undefined,
-      projectName: (card as any).projectName || '',
+      projectName: card!.projectName || '',
       campaignId: card!.campaignId || undefined,
-      campaignName: (card as any).campaignName || '',
+      campaignName: card!.campaignName || '',
       assetId: card!.assetId || undefined,
-      assetName: (card as any).assetName || '',
+      assetName: card!.assetName || '',
       activityId: card!.activityId || undefined,
-      activityName: (card as any).activityName || '',
+      activityName: card!.activityName || '',
     });
     setEditing(true);
   }
@@ -229,7 +229,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             {card.projectId && <ZoomChip label="📁 Project" table="C_Project" id={card.projectId} />}
             {card.campaignId && <ZoomChip label="📣 Campaign" table="C_Campaign" id={card.campaignId} />}
             {card.assetId && <ZoomChip label="🔧 Asset" table="A_Asset" id={card.assetId} />}
-            {(card as any).activityId && <ZoomChip label="📊 Activity" table="C_Activity" id={(card as any).activityId} />}
+            {card.activityId && <ZoomChip label="📊 Activity" table="C_Activity" id={card.activityId} />}
             {!card.bpartnerId && !card.productId && !card.orderId && !card.invoiceId &&
              !card.projectId && <span className="text-xs text-gray-400">No linked records</span>}
           </div>
