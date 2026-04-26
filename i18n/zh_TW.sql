@@ -110,3 +110,10 @@ UPDATE AD_Message_Trl SET MsgText='負責人', IsTranslated='Y' WHERE AD_Languag
 UPDATE AD_Message_Trl SET MsgText='業務夥伴', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupBPartner');
 UPDATE AD_Message_Trl SET MsgText='優先級', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanGroupPriority');
 UPDATE AD_Message_Trl SET MsgText='未分組', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanUngrouped');
+
+-- Misc (Phase 4)
+UPDATE AD_Message_Trl SET MsgText='找不到卡片', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanCardNotFound');
+UPDATE AD_Message_Trl SET MsgText='在 iDempiere 中開啟', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanOpenInERP');
+UPDATE AD_Message_Trl SET MsgText='WIP 限制（0=無限）', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanWipTooltip');
+UPDATE AD_Message_Trl SET MsgText='上次移動', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanLastMoved');
+UPDATE AD_Message_Trl SET MsgText='預設', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanDefault');

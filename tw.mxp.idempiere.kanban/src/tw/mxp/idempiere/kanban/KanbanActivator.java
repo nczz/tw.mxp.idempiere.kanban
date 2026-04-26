@@ -65,6 +65,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureMessages(); // adds any new messages (idempotent)
 				recordMigration("1.3.0");
 			}
+			if (!isMigrationApplied("1.4.0")) {
+				ensureMessages();
+				recordMigration("1.4.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -270,6 +274,13 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanGroupProject","Project","專案"},{"KanbanGroupSalesRep","Sales Rep","負責人"},
 			{"KanbanGroupBPartner","Business Partner","業務夥伴"},{"KanbanGroupPriority","Priority","優先級"},
 			{"KanbanUngrouped","Ungrouped","未分組"},
+			// Misc
+			{"KanbanCardNotFound","Card not found","找不到卡片"},
+			{"KanbanOpenInERP","Open in iDempiere","在 iDempiere 中開啟"},
+			{"KanbanWipPlaceholder","WIP","WIP"},
+			{"KanbanWipTooltip","WIP Limit (0=∞)","WIP 限制（0=無限）"},
+			{"KanbanLastMoved","Last moved","上次移動"},
+			{"KanbanDefault","Default","預設"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

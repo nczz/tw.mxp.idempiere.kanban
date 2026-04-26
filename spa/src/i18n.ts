@@ -12,6 +12,11 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   // Card
   'KanbanNoCards': 'No cards',
   'KanbanNoStatuses': 'No statuses configured.',
+  'KanbanCardNotFound': 'Card not found',
+  'KanbanOpenInERP': 'Open in iDempiere',
+  'KanbanWipPlaceholder': 'WIP',
+  'KanbanWipTooltip': 'WIP Limit (0=∞)',
+  'KanbanLastMoved': 'Last moved',
   'KanbanDaysAgo': 'd',
   // CardDetail
   'KanbanEdit': 'Edit',

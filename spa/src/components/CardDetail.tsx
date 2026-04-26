@@ -24,8 +24,8 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [commentText, setCommentText] = useState('');
 
-  if (isLoading) return <Modal onClose={onClose}><div className="p-8 text-center text-gray-400">Loading...</div></Modal>;
-  if (!card) return <Modal onClose={onClose}><div className="p-8 text-center text-red-500">Card not found</div></Modal>;
+  if (isLoading) return <Modal onClose={onClose}><div className="p-8 text-center text-gray-400">{t('KanbanLoading')}</div></Modal>;
+  if (!card) return <Modal onClose={onClose}><div className="p-8 text-center text-red-500">{t('KanbanCardNotFound')}</div></Modal>;
 
   function startEdit() {
     setForm({
@@ -220,9 +220,9 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           /* ===== VIEW MODE ===== */
           <>
             <div className="text-base font-medium text-gray-800 mb-1">{card.summary}</div>
-            <div className="text-xs text-gray-400 mb-1">Notes / Result</div>
+            <div className="text-xs text-gray-400 mb-1">{t('KanbanNotesResult')}</div>
             <div className="text-sm text-gray-600 bg-gray-50 rounded p-2 min-h-[2rem] whitespace-pre-wrap mb-3">
-              {card.result || <span className="text-gray-300 italic">No notes</span>}
+              {card.result || <span className="text-gray-300 italic">{t('KanbanNoNotes')}</span>}
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3">
               <Field label={t("KanbanStatus")} value={card.statusName} />
@@ -245,16 +245,16 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           <div className="text-xs font-semibold text-gray-500 mb-1">ERP Links</div>
           <div className="flex flex-wrap gap-1">
             {card.bpartnerId && <ZoomChip label={`🏢 ${card.bpartnerName}`} table="C_BPartner" id={card.bpartnerId} />}
-            {card.productId && <ZoomChip label={`📦 ${card.productName || 'Product'}`} table="M_Product" id={card.productId} />}
-            {card.orderId && <ZoomChip label={`📋 ${card.orderName || 'Order'}`} table="C_Order" id={card.orderId} />}
-            {card.invoiceId && <ZoomChip label={`🧾 ${card.invoiceName || 'Invoice'}`} table="C_Invoice" id={card.invoiceId} />}
-            {card.paymentId && <ZoomChip label={`💳 ${card.paymentName || 'Payment'}`} table="C_Payment" id={card.paymentId} />}
-            {card.projectId && <ZoomChip label={`📁 ${card.projectName || 'Project'}`} table="C_Project" id={card.projectId} />}
-            {card.campaignId && <ZoomChip label={`📣 ${card.campaignName || 'Campaign'}`} table="C_Campaign" id={card.campaignId} />}
-            {card.assetId && <ZoomChip label={`🔧 ${card.assetName || 'Asset'}`} table="A_Asset" id={card.assetId} />}
-            {card.activityId && <ZoomChip label={`📊 ${card.activityName || 'Activity'}`} table="C_Activity" id={card.activityId} />}
+            {card.productId && <ZoomChip label={`📦 ${card.productName || t('KanbanProduct')}`} table="M_Product" id={card.productId} />}
+            {card.orderId && <ZoomChip label={`📋 ${card.orderName || t('KanbanOrder')}`} table="C_Order" id={card.orderId} />}
+            {card.invoiceId && <ZoomChip label={`🧾 ${card.invoiceName || t('KanbanInvoice')}`} table="C_Invoice" id={card.invoiceId} />}
+            {card.paymentId && <ZoomChip label={`💳 ${card.paymentName || t('KanbanPayment')}`} table="C_Payment" id={card.paymentId} />}
+            {card.projectId && <ZoomChip label={`📁 ${card.projectName || t('KanbanProject')}`} table="C_Project" id={card.projectId} />}
+            {card.campaignId && <ZoomChip label={`📣 ${card.campaignName || t('KanbanCampaign')}`} table="C_Campaign" id={card.campaignId} />}
+            {card.assetId && <ZoomChip label={`🔧 ${card.assetName || t('KanbanAsset')}`} table="A_Asset" id={card.assetId} />}
+            {card.activityId && <ZoomChip label={`📊 ${card.activityName || t('KanbanActivity')}`} table="C_Activity" id={card.activityId} />}
             {!card.bpartnerId && !card.productId && !card.orderId && !card.invoiceId &&
-             !card.projectId && <span className="text-xs text-gray-400">No linked records</span>}
+             !card.projectId && <span className="text-xs text-gray-400">{t('KanbanNoLinks')}</span>}
           </div>
         </div>
 

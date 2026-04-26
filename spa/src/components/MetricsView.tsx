@@ -37,7 +37,7 @@ export function MetricsView({ requestTypeId }: { requestTypeId?: number }) {
                     {c.avgDays}d
                   </div>
                 </div>
-                <span className="text-xs text-gray-400 w-16 text-right">{c.count} cards</span>
+                <span className="text-xs text-gray-400 w-16 text-right">{c.count} {t('KanbanWipCards')}</span>
               </div>
             ))}
           </div>

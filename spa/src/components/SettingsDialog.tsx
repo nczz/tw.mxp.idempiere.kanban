@@ -169,13 +169,13 @@ export function SettingsDialog({ onClose, onSaved, onError }: Props) {
                       <option value="closed">🔴 {t('KanbanStatusClosed')}</option>
                       <option value="final">⛔ {t('KanbanStatusFinalClose')}</option>
                     </select>
-                    <input type="number" min="0" placeholder="WIP"
+                    <input type="number" min="0" placeholder={t('KanbanWipPlaceholder')}
                       value={wipLimits[String(s.id)] || ''}
                       onChange={(e) => setWipLimits((prev) => ({ ...prev, [String(s.id)]: e.target.value }))}
-                      className="w-16 border rounded px-1 py-1 text-xs text-center" title="WIP Limit (0=∞)" />
+                      className="w-16 border rounded px-1 py-1 text-xs text-center" title={t('KanbanWipTooltip')} />
                     <button onClick={() => { if (confirm(t('KanbanDeleteStatus') + '?')) deleteStatus(s.id); }}
                       className="text-xs text-red-400 hover:text-red-600">✕</button>
-                    <button onClick={() => zoomRecord('R_Status', s.id)} title="Open in iDempiere"
+                    <button onClick={() => zoomRecord('R_Status', s.id)} title={t('KanbanOpenInERP')}
                       className="text-xs text-gray-400 hover:text-blue-500">🔗</button>
                   </div>
                 ))}
@@ -251,7 +251,7 @@ function RequestTypeRow({ rt, isDefault, onSetDefault, onRename, onZoom }: {
       )}
       {!editing && (<>
         <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-gray-600">✏️</button>
-        <button onClick={onZoom} title="Open in iDempiere" className="text-xs text-gray-400 hover:text-blue-500">🔗</button>
+        <button onClick={onZoom} title={t('KanbanOpenInERP')} className="text-xs text-gray-400 hover:text-blue-500">🔗</button>
       </>)}
     </div>
   );

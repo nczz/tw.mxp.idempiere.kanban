@@ -1,4 +1,5 @@
 import { priorityHex, priorityLabel, dueColor } from '../utils/priority';
+import { t } from '../i18n';
 import type { Card } from '../types';
 
 export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: boolean }) {
@@ -22,7 +23,7 @@ export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: bool
           {stale.level !== 'ok' && (
             <span className={`text-xs px-1 py-0.5 rounded ${
               stale.level === 'danger' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'
-            }`} title={`Last moved ${stale.days}d ago`}>
+            }`} title={`${t('KanbanLastMoved')} ${stale.days}${t('KanbanDaysAgo')}`}>
               🕐 {stale.days}d
             </span>
           )}
