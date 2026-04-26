@@ -86,6 +86,18 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanNoData': 'No data available',
   'KanbanBlock': 'Block',
   'KanbanUnblock': 'Unblock',
+  'KanbanBoardSource': 'Board Source',
+  'KanbanStatusManagement': 'Status Management',
+  'KanbanAddStatus': 'Add Status',
+  'KanbanStatusName': 'Status Name',
+  'KanbanStatusType': 'Type',
+  'KanbanStatusOpen': '🟢 Open',
+  'KanbanStatusClosed': '🔴 Closed',
+  'KanbanStatusFinalClose': '⛔ Final Close',
+  'KanbanDeleteStatus': 'Delete',
+  'KanbanCannotDelete': 'Cannot delete: cards use this status',
+  'KanbanFinalCloseWarning': 'This will permanently close the card. It cannot be reopened. Continue?',
+  'KanbanCardClosed': 'Card moved to closed status',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };

@@ -38,9 +38,70 @@ public class KanbanActivator extends Incremental2PackActivator {
 	protected void afterPackIn() {
 		super.afterPackIn();
 		ensureTables();
+		ensureDefaultBoard();
 		ensureForm();
 		ensureMenu();
 		ensureMessages();
+	}
+
+	private void ensureDefaultBoard() {
+		// Create default StatusCategory + Statuses + RequestType for Kanban
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_StatusCategory WHERE Name='Kanban Board'") > 0)
+			return;
+
+		log.info("Creating default Kanban Board status category...");
+		int catId = DB.getNextID(0, "R_StatusCategory", null);
+		DB.executeUpdateEx("INSERT INTO R_StatusCategory (R_StatusCategory_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+			+ "Created, CreatedBy, Updated, UpdatedBy, Name, IsDefault, R_StatusCategory_UU) "
+			+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Board', 'N', generate_uuid())",
+			new Object[]{catId}, null);
+
+		String[][] statuses = {
+			// Name, SeqNo, IsOpen, IsClosed, IsFinalClose, IsDefault
+			{"Backlog",     "10", "N", "N", "N", "Y"},
+			{"To Do",       "20", "Y", "N", "N", "N"},
+			{"In Progress", "30", "Y", "N", "N", "N"},
+			{"Review",      "40", "Y", "N", "N", "N"},
+			{"Done",        "50", "N", "Y", "N", "N"},
+			{"Archived",    "60", "N", "Y", "Y", "N"},
+		};
+		for (String[] s : statuses) {
+			int sId = DB.getNextID(0, "R_Status", null);
+			DB.executeUpdateEx("INSERT INTO R_Status (R_Status_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, SeqNo, "
+				+ "IsOpen, IsClosed, IsFinalClose, IsDefault, R_Status_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, ?, ?, ?, ?, ?, ?, ?, generate_uuid())",
+				new Object[]{sId, s[0], catId, Integer.parseInt(s[1]), s[2], s[3], s[4], s[5]}, null);
+		}
+
+		// Create RequestType linked to this category
+		int rtId = DB.getNextID(0, "R_RequestType", null);
+		DB.executeUpdateEx("INSERT INTO R_RequestType (R_RequestType_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+			+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, IsDefault, "
+			+ "IsSelfService, IsAutoChangeRequest, IsConfidentialInfo, IsEMailWhenDue, IsEMailWhenOverdue, "
+			+ "AutoDueDateDays, ConfidentialType, R_RequestType_UU) "
+			+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Task', ?, 'N', "
+			+ "'N', 'N', 'N', 'N', 'N', 0, 'A', generate_uuid())",
+			new Object[]{rtId, catId}, null);
+
+		// Set as active kanban request type
+		saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", String.valueOf(rtId), 0);
+		log.info("Default Kanban Board created: category=" + catId + " requestType=" + rtId);
+	}
+
+	private void saveSysConfig(String name, String value, int clientId) {
+		int existing = DB.getSQLValueEx(null,
+			"SELECT AD_SysConfig_ID FROM AD_SysConfig WHERE Name=? AND AD_Client_ID=?", name, clientId);
+		if (existing > 0) {
+			DB.executeUpdateEx("UPDATE AD_SysConfig SET Value=? WHERE AD_SysConfig_ID=?",
+				new Object[]{value, existing}, null);
+		} else {
+			int id = DB.getNextID(clientId, "AD_SysConfig", null);
+			DB.executeUpdateEx("INSERT INTO AD_SysConfig (AD_SysConfig_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, EntityType, ConfigurationLevel, AD_SysConfig_UU) "
+				+ "VALUES (?, ?, 0, 'Y', now(), 100, now(), 100, ?, ?, 'U', 'C', generate_uuid())",
+				new Object[]{id, clientId, name, value}, null);
+		}
 	}
 
 	private void ensureMessages() {
@@ -121,6 +182,17 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanNoData", "No data available", "無資料"},
 			{"KanbanBlock", "Block", "阻塞"},
 			{"KanbanUnblock", "Unblock", "解除阻塞"},
+			{"KanbanBoardSource", "Board Source", "看板來源"},
+			{"KanbanStatusManagement", "Status Management", "狀態管理"},
+			{"KanbanAddStatus", "Add Status", "新增狀態"},
+			{"KanbanStatusName", "Status Name", "狀態名稱"},
+			{"KanbanStatusType", "Type", "類型"},
+			{"KanbanStatusOpen", "Open", "進行中"},
+			{"KanbanStatusClosed", "Closed", "已結案"},
+			{"KanbanStatusFinalClose", "Final Close", "最終結案"},
+			{"KanbanDeleteStatus", "Delete", "刪除"},
+			{"KanbanFinalCloseWarning", "This will permanently close the card. It cannot be reopened. Continue?", "此操作將永久結案卡片，無法重新開啟。確定繼續？"},
+			{"KanbanCardClosed", "Card moved to closed status", "卡片已移至結案狀態"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

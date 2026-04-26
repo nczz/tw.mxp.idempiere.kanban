@@ -68,6 +68,11 @@ function KanbanApp() {
   if (init.messages) setMessages(init.messages as unknown as Record<string, string>);
   if (init.priorityColors) setPriorityColors(init.priorityColors);
 
+  // Set default request type from active board config
+  if (!requestTypeId && init.activeRequestTypeId) {
+    setRequestTypeId(init.activeRequestTypeId);
+  }
+
   const statusCategoryId = requestTypeId
     ? init.requestTypes.find((rt) => rt.id === requestTypeId)?.statusCategoryId
     : undefined;

@@ -21,6 +21,7 @@ export interface Status {
   seqNo: number;
   isClosed: boolean;
   isOpen: boolean;
+  isFinalClose?: boolean;
   statusCategoryId: number;
 }
 
@@ -61,4 +62,5 @@ export interface InitData {
   messages?: Record<string, string>;
   wipLimits?: Record<string, number>;
   priorityColors?: Record<string, string>;
+  activeRequestTypeId?: number;
 }

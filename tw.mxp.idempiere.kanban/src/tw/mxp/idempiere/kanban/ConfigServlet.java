@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.compiere.model.MSysConfig;
 import org.compiere.util.DB;
+import org.compiere.util.DB;
 import org.compiere.util.Env;
 
 import com.google.gson.JsonElement;
@@ -40,24 +41,73 @@ public class ConfigServlet extends HttpServlet {
 		Env.setContext(ctx, "#AD_User_ID", userId);
 
 		try {
-			// WIP limits: {"wipLimits": {"100": 5, "101": 3}}
+			// Active request type
+			if (json.has("activeRequestTypeId")) {
+				saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", json.get("activeRequestTypeId").getAsString(), clientId);
+			}
+
+			// WIP limits
 			if (json.has("wipLimits")) {
 				JsonObject wip = json.getAsJsonObject("wipLimits");
 				for (Map.Entry<String, JsonElement> e : wip.entrySet()) {
-					String key = "KANBAN_WIP_" + e.getKey();
-					int value = e.getValue().getAsInt();
-					saveSysConfig(key, String.valueOf(value), clientId);
+					saveSysConfig("KANBAN_WIP_" + e.getKey(), String.valueOf(e.getValue().getAsInt()), clientId);
 				}
 			}
 
-			// Priority colors: {"priorityColors": {"1": "#EF4444", "3": "#F97316"}}
+			// Priority colors
 			if (json.has("priorityColors")) {
 				JsonObject colors = json.getAsJsonObject("priorityColors");
 				for (Map.Entry<String, JsonElement> e : colors.entrySet()) {
-					String key = "KANBAN_COLOR_P" + e.getKey();
-					saveSysConfig(key, e.getValue().getAsString(), clientId);
+					saveSysConfig("KANBAN_COLOR_P" + e.getKey(), e.getValue().getAsString(), clientId);
 				}
 			}
+
+			// Create new status
+			if (json.has("createStatus")) {
+				JsonObject s = json.getAsJsonObject("createStatus");
+				int catId = s.get("statusCategoryId").getAsInt();
+				int seqNo = s.has("seqNo") ? s.get("seqNo").getAsInt() : 99;
+				int sId = DB.getNextID(0, "R_Status", null);
+				DB.executeUpdateEx("INSERT INTO R_Status (R_Status_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+					+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, SeqNo, "
+					+ "IsOpen, IsClosed, IsFinalClose, IsDefault, R_Status_UU) "
+					+ "VALUES (?, 0, 0, 'Y', now(), ?, now(), ?, ?, ?, ?, ?, ?, ?, 'N', generate_uuid())",
+					new Object[]{sId, userId, userId,
+						s.get("name").getAsString(), catId, seqNo,
+						s.has("isOpen") && s.get("isOpen").getAsBoolean() ? "Y" : "N",
+						s.has("isClosed") && s.get("isClosed").getAsBoolean() ? "Y" : "N",
+						s.has("isFinalClose") && s.get("isFinalClose").getAsBoolean() ? "Y" : "N"
+					}, null);
+			}
+
+			// Update status
+			if (json.has("updateStatus")) {
+				JsonObject s = json.getAsJsonObject("updateStatus");
+				int sId = s.get("id").getAsInt();
+				DB.executeUpdateEx("UPDATE R_Status SET Name=?, SeqNo=?, IsOpen=?, IsClosed=?, IsFinalClose=?, Updated=now(), UpdatedBy=? "
+					+ "WHERE R_Status_ID=?",
+					new Object[]{
+						s.get("name").getAsString(),
+						s.has("seqNo") ? s.get("seqNo").getAsInt() : 0,
+						s.has("isOpen") && s.get("isOpen").getAsBoolean() ? "Y" : "N",
+						s.has("isClosed") && s.get("isClosed").getAsBoolean() ? "Y" : "N",
+						s.has("isFinalClose") && s.get("isFinalClose").getAsBoolean() ? "Y" : "N",
+						userId, sId
+					}, null);
+			}
+
+			// Delete status (only if no cards use it)
+			if (json.has("deleteStatusId")) {
+				int sId = json.get("deleteStatusId").getAsInt();
+				int count = DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_Request WHERE R_Status_ID=?", sId);
+				if (count > 0) {
+					resp.setStatus(400);
+					resp.getWriter().print("{\"error\":\"Cannot delete: " + count + " cards use this status\"}");
+					return;
+				}
+				DB.executeUpdateEx("DELETE FROM R_Status WHERE R_Status_ID=?", new Object[]{sId}, null);
+			}
+
 		} catch (Exception e) {
 			resp.setStatus(500);
 			String msg = e.getMessage();

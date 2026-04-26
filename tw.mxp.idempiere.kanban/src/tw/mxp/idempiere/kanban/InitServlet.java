@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.compiere.model.MSysConfig;
 import org.compiere.util.DB;
 
 import com.google.gson.JsonArray;
@@ -28,6 +29,14 @@ public class InitServlet extends HttpServlet {
 		int userId = AuthContext.getUserId(req);
 
 		JsonObject result = new JsonObject();
+
+		// Active request type (from AD_SysConfig or first available)
+		int activeRtId = 0;
+		String artVal = MSysConfig.getValue("KANBAN_ACTIVE_REQUEST_TYPE", "", clientId);
+		if (artVal != null && !artVal.isEmpty()) {
+			try { activeRtId = Integer.parseInt(artVal); } catch (Exception ignored) {}
+		}
+		result.addProperty("activeRequestTypeId", activeRtId);
 
 		// Request types available for this client
 		JsonArray requestTypes = new JsonArray();
@@ -72,6 +81,7 @@ public class InitServlet extends HttpServlet {
 					st.addProperty("seqNo", rs.getInt("SeqNo"));
 					st.addProperty("isClosed", "Y".equals(rs.getString("IsClosed")));
 					st.addProperty("isOpen", "Y".equals(rs.getString("IsOpen")));
+					st.addProperty("isFinalClose", "Y".equals(rs.getString("IsFinalClose")));
 					st.addProperty("statusCategoryId", rs.getInt("R_StatusCategory_ID"));
 					statuses.add(st);
 				}

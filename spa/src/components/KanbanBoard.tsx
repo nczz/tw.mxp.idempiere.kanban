@@ -60,8 +60,14 @@ export function KanbanBoard({ statuses, cards, onError, onCardClick, wipLimits }
       }
     }
 
+    // FinalClose warning
+    const targetStatus = statuses.find((s) => s.id === targetStatusId);
+    if (targetStatus?.isFinalClose) {
+      if (!confirm(t('KanbanFinalCloseWarning'))) return;
+    }
+
     moveCard.mutate({ id: card.id, targetStatusId }, {
-      onError: (err) => onError(`Move failed: ${err.message}`),
+      onError: (err) => onError(`${t('KanbanMoveFailed')}: ${err.message}`),
     });
   }
 
