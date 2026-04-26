@@ -48,6 +48,16 @@ public class GanttServlet extends HttpServlet {
 		if ("Private".equals(scope)) {
 			sql.append("AND r.SalesRep_ID=? ");
 			params.add(userId);
+		} else if ("Subordinates".equals(scope)) {
+			sql.append("AND (r.SalesRep_ID=? OR r.SalesRep_ID IN (");
+			sql.append("  WITH RECURSIVE subordinates AS (");
+			sql.append("    SELECT AD_User_ID FROM AD_User WHERE Supervisor_ID=? AND IsActive='Y'");
+			sql.append("    UNION ALL");
+			sql.append("    SELECT u2.AD_User_ID FROM AD_User u2 JOIN subordinates sub ON u2.Supervisor_ID=sub.AD_User_ID WHERE u2.IsActive='Y'");
+			sql.append("  ) SELECT AD_User_ID FROM subordinates");
+			sql.append(")) ");
+			params.add(userId);
+			params.add(userId);
 		}
 
 		if (requestTypeIdParam != null && !requestTypeIdParam.isEmpty()) {

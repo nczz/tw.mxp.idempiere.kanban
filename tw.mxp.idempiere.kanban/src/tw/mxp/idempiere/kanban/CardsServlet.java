@@ -348,6 +348,7 @@ public class CardsServlet extends HttpServlet {
 		result.addProperty("success", true);
 		resp.setStatus(201);
 		resp.getWriter().print(result.toString());
+		sendRefreshEvent(clientId, cardId);
 	}
 
 	// ============================================================
@@ -388,6 +389,15 @@ public class CardsServlet extends HttpServlet {
 		}
 
 		resp.getWriter().print("{\"success\":true}");
+	}
+
+	private void sendRefreshEvent(int clientId, int cardId) {
+		try {
+			Map<String, Object> d = new HashMap<>();
+			d.put("AD_Client_ID", clientId);
+			d.put("R_Request_ID", cardId);
+			EventManager.getInstance().sendEvent(EventManager.newEvent("kanban/refresh", d));
+		} catch (Exception ignored) {}
 	}
 
 	private void sendError(HttpServletResponse resp, int status, Exception e) throws IOException {
@@ -704,6 +714,7 @@ public class CardsServlet extends HttpServlet {
 		JsonObject result = new JsonObject();
 		result.addProperty("success", true);
 		resp.getWriter().print(result.toString());
+		sendRefreshEvent(clientId, cardId);
 	}
 
 	// ============================================================

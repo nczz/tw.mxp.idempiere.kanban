@@ -75,6 +75,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureMessages();
 				recordMigration("1.5.0");
 			}
+			if (!isMigrationApplied("1.6.0")) {
+				ensureMessages();
+				recordMigration("1.6.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -289,6 +293,8 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanSharedStatuses","Statuses shared with","狀態與以下看板共用"},
 			{"KanbanMakeIndependent","Make Independent","建立獨立狀態"},
 			{"KanbanActivityLog","Activity","活動歷程"},
+			{"KanbanCannotDelete","Cannot delete: cards use this status","無法刪除：有卡片使用此狀態"},
+			{"KanbanDaysAgo","d","天"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

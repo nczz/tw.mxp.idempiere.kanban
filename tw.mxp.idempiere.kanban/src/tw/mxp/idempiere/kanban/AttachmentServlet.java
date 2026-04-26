@@ -3,12 +3,15 @@ package tw.mxp.idempiere.kanban;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.adempiere.base.event.EventManager;
 import org.compiere.model.MAttachment;
 import org.compiere.model.MAttachmentEntry;
 import org.compiere.model.MTable;
@@ -93,6 +96,7 @@ public class AttachmentServlet extends HttpServlet {
 
 			resp.setStatus(201);
 			resp.getWriter().print("{\"success\":true}");
+			sendRefreshEvent(clientId, cardId);
 		} catch (Exception e) {
 			resp.setStatus(500);
 			String msg = e.getMessage();
@@ -128,12 +132,22 @@ public class AttachmentServlet extends HttpServlet {
 					att.deleteEntry(i);
 					att.saveEx();
 					resp.getWriter().print("{\"success\":true}");
+					sendRefreshEvent(clientId, cardId);
 					return;
 				}
 			}
 		}
 		resp.setStatus(404);
 		resp.getWriter().print("{\"error\":\"File not found\"}");
+	}
+
+	private void sendRefreshEvent(int clientId, int cardId) {
+		try {
+			Map<String, Object> d = new HashMap<>();
+			d.put("AD_Client_ID", clientId);
+			d.put("R_Request_ID", cardId);
+			EventManager.getInstance().sendEvent(EventManager.newEvent("kanban/refresh", d));
+		} catch (Exception ignored) {}
 	}
 
 	private void listAttachments(int cardId, HttpServletResponse resp) throws IOException {

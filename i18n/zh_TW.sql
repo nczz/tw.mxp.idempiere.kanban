@@ -120,3 +120,5 @@ UPDATE AD_Message_Trl SET MsgText='預設', IsTranslated='Y' WHERE AD_Language='
 UPDATE AD_Message_Trl SET MsgText='狀態與以下看板共用', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSharedStatuses');
 UPDATE AD_Message_Trl SET MsgText='建立獨立狀態', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanMakeIndependent');
 UPDATE AD_Message_Trl SET MsgText='活動歷程', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanActivityLog');
+UPDATE AD_Message_Trl SET MsgText='無法刪除：有卡片使用此狀態', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanCannotDelete');
+UPDATE AD_Message_Trl SET MsgText='天', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanDaysAgo');
