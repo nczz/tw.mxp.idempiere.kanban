@@ -210,7 +210,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               <SearchSelect table="A_Asset" label={t("KanbanAsset")}
                 value={form.assetId as number | undefined} valueName={form.assetName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, assetId: id, assetName: name }))} />
-              <SearchSelect table="C_Activity" label={t("KanbanActivity")}
+              <SearchSelect table="C_Activity" label={t("KanbanActivityLog")}
                 value={form.activityId as number | undefined} valueName={form.activityName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, activityId: id, activityName: name }))} />
             </div>
@@ -325,20 +325,21 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           )}
         </div>
 
-        {/* Move History (bottom) */}
+        {/* Activity Timeline */}
         <div>
-          <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanMoveHistory")}</div>
-          {card.moveHistory.length === 0 ? (
-            <div className="text-xs text-gray-400">{t("KanbanNoMoves")}</div>
+          <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanActivityLog")}</div>
+          {(!card.activity || card.activity.length === 0) ? (
+            <div className="text-xs text-gray-400">{t("KanbanNoData")}</div>
           ) : (
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {card.moveHistory.map((h, i) => (
-                <div key={i} className="text-xs flex items-center gap-2 text-gray-600">
-                  <span className="text-gray-400 w-32 flex-shrink-0">{new Date(h.date).toLocaleString()}</span>
-                  <span className="font-medium">{h.userName}</span>
-                  <span className="bg-gray-100 px-1 rounded">{h.fromStatus || '—'}</span>
-                  <span>→</span>
-                  <span className="bg-blue-100 px-1 rounded">{h.toStatus}</span>
+            <div className="space-y-1 max-h-48 overflow-y-auto">
+              {card.activity.map((a, i) => (
+                <div key={i} className="text-xs flex items-start gap-2 text-gray-600">
+                  <span className="text-gray-400 w-32 flex-shrink-0">{new Date(a.date).toLocaleString()}</span>
+                  <span className={`w-4 flex-shrink-0 ${
+                    a.type === 'move' ? 'text-blue-500' : a.type === 'comment' ? 'text-green-500' : 'text-orange-500'
+                  }`}>{a.type === 'move' ? '↔' : a.type === 'comment' ? '💬' : '✏️'}</span>
+                  <span className="font-medium flex-shrink-0">{a.userName}</span>
+                  <span className="text-gray-500 truncate">{a.detail}</span>
                 </div>
               ))}
             </div>

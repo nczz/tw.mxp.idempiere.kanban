@@ -23,6 +23,7 @@ import org.compiere.util.Trx;
 import org.compiere.util.TrxRunnable;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -566,6 +567,59 @@ public class CardsServlet extends HttpServlet {
 			}
 		} catch (Exception ignored) {}
 		card.add("attachments", attachments);
+
+		// Activity timeline (merged: moves + comments + field changes)
+		JsonArray activity = new JsonArray();
+		// Moves
+		for (int i = 0; i < history.size(); i++) {
+			JsonObject a = new JsonObject();
+			JsonObject h = history.get(i).getAsJsonObject();
+			a.addProperty("type", "move");
+			a.addProperty("date", h.get("date").getAsLong());
+			a.addProperty("userName", h.get("userName").getAsString());
+			a.addProperty("detail", h.get("fromStatus").getAsString() + " → " + h.get("toStatus").getAsString());
+			activity.add(a);
+		}
+		// Comments
+		for (int i = 0; i < comments.size(); i++) {
+			JsonObject a = new JsonObject();
+			JsonObject c = comments.get(i).getAsJsonObject();
+			a.addProperty("type", "comment");
+			a.addProperty("date", c.get("date").getAsLong());
+			a.addProperty("userName", c.get("userName").getAsString());
+			a.addProperty("detail", c.get("text").getAsString());
+			activity.add(a);
+		}
+		// AD_ChangeLog (field-level changes, if enabled)
+		String clSql = "SELECT cl.Created, cl.CreatedBy, COALESCE(u.Name,'') AS UserName, "
+			+ "col.ColumnName, cl.OldValue, cl.NewValue "
+			+ "FROM AD_ChangeLog cl "
+			+ "JOIN AD_Column col ON cl.AD_Column_ID=col.AD_Column_ID "
+			+ "LEFT JOIN AD_User u ON cl.CreatedBy=u.AD_User_ID "
+			+ "WHERE cl.AD_Table_ID=417 AND cl.Record_ID=? "
+			+ "ORDER BY cl.Created DESC";
+		try (PreparedStatement pstmt = DB.prepareStatement(clSql, null)) {
+			pstmt.setInt(1, cardId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					String col = rs.getString("ColumnName");
+					if ("Updated".equals(col) || "UpdatedBy".equals(col)) continue;
+					JsonObject a = new JsonObject();
+					a.addProperty("type", "change");
+					addTimestamp(a, "date", rs.getTimestamp("Created"));
+					a.addProperty("userName", rs.getString("UserName"));
+					a.addProperty("detail", col + ": " + nvl(rs.getString("OldValue")) + " → " + nvl(rs.getString("NewValue")));
+					activity.add(a);
+				}
+			}
+		} catch (Exception ignored) {}
+		// Sort by date descending
+		java.util.List<JsonElement> sorted = new java.util.ArrayList<>();
+		for (int i = 0; i < activity.size(); i++) sorted.add(activity.get(i));
+		sorted.sort((a, b) -> Long.compare(b.getAsJsonObject().get("date").getAsLong(), a.getAsJsonObject().get("date").getAsLong()));
+		JsonArray sortedActivity = new JsonArray();
+		sorted.forEach(sortedActivity::add);
+		card.add("activity", sortedActivity);
 
 		resp.getWriter().print(card.toString());
 	}

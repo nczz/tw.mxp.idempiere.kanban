@@ -55,6 +55,7 @@ export interface CardDetail extends Card {
   moveHistory: { date: number; userName: string; fromStatus: string; toStatus: string; note: string }[];
   comments: { id: number; text: string; date: number; userId: number; userName: string }[];
   attachments?: { name: string; size: number }[];
+  activity?: { type: string; date: number; userName: string; detail: string }[];
 }
 
 export function useCardDetail(cardId: number | null) {

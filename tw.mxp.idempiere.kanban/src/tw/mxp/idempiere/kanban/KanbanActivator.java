@@ -283,6 +283,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanDefault","Default","預設"},
 			{"KanbanSharedStatuses","Statuses shared with","狀態與以下看板共用"},
 			{"KanbanMakeIndependent","Make Independent","建立獨立狀態"},
+			{"KanbanActivityLog","Activity","活動歷程"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

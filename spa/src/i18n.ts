@@ -28,6 +28,7 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanERPLinks': 'ERP Links',
   'KanbanNoLinks': 'No linked records',
   'KanbanMoveHistory': 'Move History',
+  'KanbanActivityLog': 'Activity',
   'KanbanNoMoves': 'No moves recorded',
   'KanbanEscalated': 'Blocked',
   // NewCardDialog
