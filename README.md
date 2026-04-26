@@ -47,6 +47,23 @@ bash build.sh
 
 ### 2. Install
 
+**Option A: update-prd.sh (recommended)**
+
+Copy the p2 repository to the server, then:
+
+```bash
+cd /opt/idempiere
+./update-prd.sh file:///path/to/tw.mxp.idempiere.kanban.p2/target/repository tw.mxp.idempiere.kanban
+```
+
+Or from a remote URL:
+
+```bash
+./update-prd.sh https://your-server/kanban-p2-repo tw.mxp.idempiere.kanban
+```
+
+**Option B: Manual copy**
+
 ```bash
 JAR=tw.mxp.idempiere.kanban/target/tw.mxp.idempiere.kanban-14.0.0-SNAPSHOT.jar
 
