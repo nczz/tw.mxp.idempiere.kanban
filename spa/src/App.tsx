@@ -140,7 +140,7 @@ function KanbanApp() {
         {view === 'gantt' ? (
           <GanttView scope={scope} requestTypeId={requestTypeId} onCardClick={setSelectedCardId} />
         ) : view === 'metrics' ? (
-          <MetricsView />
+          <MetricsView requestTypeId={requestTypeId} />
         ) : cardsLoading ? (
           <div className="flex items-center justify-center h-full text-gray-400">{t('KanbanLoadingCards')}</div>
         ) : (

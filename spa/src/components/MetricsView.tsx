@@ -7,10 +7,10 @@ interface Metrics {
   throughput: { week: number; count: number }[];
 }
 
-export function MetricsView() {
+export function MetricsView({ requestTypeId }: { requestTypeId?: number }) {
   const { data, isLoading } = useQuery<Metrics>({
-    queryKey: ['metrics'],
-    queryFn: () => kanbanFetch<Metrics>('/metrics'),
+    queryKey: ['metrics', requestTypeId],
+    queryFn: () => kanbanFetch<Metrics>(`/metrics${requestTypeId ? `?requestType=${requestTypeId}` : ''}`),
   });
 
   if (isLoading) return <div className="flex items-center justify-center h-full text-gray-400">{t('KanbanLoading')}</div>;

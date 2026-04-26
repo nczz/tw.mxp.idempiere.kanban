@@ -24,6 +24,11 @@ public class MetricsServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("application/json; charset=UTF-8");
 		int clientId = AuthContext.getClientId(req);
+		String requestTypeParam = req.getParameter("requestType");
+		Integer requestTypeId = null;
+		if (requestTypeParam != null && !requestTypeParam.isEmpty()) {
+			try { requestTypeId = Integer.parseInt(requestTypeParam); } catch (NumberFormatException ignored) {}
+		}
 
 		JsonObject result = new JsonObject();
 
@@ -33,6 +38,7 @@ public class MetricsServlet extends HttpServlet {
 			+ "ROUND(AVG(EXTRACT(EPOCH FROM (next_move.Created - l.Created)) / 86400), 1) AS AvgDays, "
 			+ "COUNT(*) AS CardCount "
 			+ "FROM RK_Card_Move_Log l "
+			+ "JOIN R_Request r ON l.R_Request_ID = r.R_Request_ID "
 			+ "JOIN R_Status s ON l.R_Status_ID_To = s.R_Status_ID "
 			+ "LEFT JOIN LATERAL ("
 			+ "  SELECT Created FROM RK_Card_Move_Log l2 "
@@ -40,9 +46,11 @@ public class MetricsServlet extends HttpServlet {
 			+ "  ORDER BY l2.Created LIMIT 1"
 			+ ") next_move ON true "
 			+ "WHERE l.AD_Client_ID = ? AND next_move.Created IS NOT NULL "
+			+ (requestTypeId != null ? "AND r.R_RequestType_ID = ? " : "")
 			+ "GROUP BY s.Name, s.SeqNo ORDER BY s.SeqNo";
 		try (PreparedStatement pstmt = DB.prepareStatement(ctSql, null)) {
 			pstmt.setInt(1, clientId);
+			if (requestTypeId != null) pstmt.setInt(2, requestTypeId);
 			try (ResultSet rs = pstmt.executeQuery()) {
 				while (rs.next()) {
 					JsonObject ct = new JsonObject();
@@ -59,12 +67,15 @@ public class MetricsServlet extends HttpServlet {
 		JsonArray throughput = new JsonArray();
 		String tpSql = "SELECT DATE_TRUNC('week', l.Created) AS Week, COUNT(DISTINCT l.R_Request_ID) AS Completed "
 			+ "FROM RK_Card_Move_Log l "
+			+ "JOIN R_Request r ON l.R_Request_ID = r.R_Request_ID "
 			+ "JOIN R_Status s ON l.R_Status_ID_To = s.R_Status_ID "
 			+ "WHERE l.AD_Client_ID = ? AND s.IsClosed = 'Y' "
 			+ "AND l.Created > NOW() - INTERVAL '12 weeks' "
+			+ (requestTypeId != null ? "AND r.R_RequestType_ID = ? " : "")
 			+ "GROUP BY DATE_TRUNC('week', l.Created) ORDER BY 1";
 		try (PreparedStatement pstmt = DB.prepareStatement(tpSql, null)) {
 			pstmt.setInt(1, clientId);
+			if (requestTypeId != null) pstmt.setInt(2, requestTypeId);
 			try (ResultSet rs = pstmt.executeQuery()) {
 				while (rs.next()) {
 					JsonObject tp = new JsonObject();
