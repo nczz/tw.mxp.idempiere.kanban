@@ -64,6 +64,63 @@ public class KanbanActivator extends Incremental2PackActivator {
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
+
+		// Always apply zh_TW translations (handles language enabled after install)
+		try { applyZhTwTranslations(); } catch (Exception e) { log.log(Level.FINE, "zh_TW", e); }
+	}
+
+	/** Update zh_TW translations every restart — handles language enabled after plugin install */
+	private void applyZhTwTranslations() {
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Language WHERE AD_Language='zh_TW' AND IsSystemLanguage='Y'") == 0)
+			return; // zh_TW not enabled, skip
+
+		String[][] zhTw = {
+			{"KanbanPrivate","個人"},{"KanbanSubordinates","部屬"},{"KanbanAll","全部"},
+			{"KanbanAllTypes","所有類型"},{"KanbanSearch","搜尋..."},{"KanbanNew","+ 新增"},
+			{"KanbanOpen","📋 進行中"},{"KanbanClosed","📦 已結案"},{"KanbanNoCards","沒有卡片"},
+			{"KanbanNoStatuses","尚未設定狀態。"},{"KanbanEdit","編輯"},{"KanbanSave","儲存"},
+			{"KanbanSaving","儲存中..."},{"KanbanCancel","取消"},{"KanbanNotesResult","備註 / 結果"},
+			{"KanbanNoNotes","無備註"},{"KanbanERPLinks","ERP 關聯"},{"KanbanNoLinks","無關聯記錄"},
+			{"KanbanMoveHistory","移動歷程"},{"KanbanNoMoves","無移動記錄"},{"KanbanEscalated","待決"},
+			{"KanbanNewRequest","新增需求"},{"KanbanSummary","摘要"},{"KanbanCreate","建立"},
+			{"KanbanCreating","建立中..."},{"KanbanStatus","狀態"},{"KanbanRequestType","需求類型"},
+			{"KanbanPriority","優先級"},{"KanbanSalesRep","負責人"},{"KanbanRequester","請求者"},
+			{"KanbanCreatedBy","建立者"},{"KanbanCreated","建立時間"},{"KanbanNextAction","下次動作"},
+			{"KanbanStartDate","開始日期"},{"KanbanEndTime","結束日期"},{"KanbanCloseDate","結案日期"},
+			{"KanbanDateNextAction","下次動作日"},{"KanbanBusinessPartner","業務夥伴"},
+			{"KanbanProduct","產品"},{"KanbanOrder","訂單"},{"KanbanInvoice","發票"},
+			{"KanbanPayment","付款"},{"KanbanProject","專案"},{"KanbanCampaign","行銷活動"},
+			{"KanbanAsset","資產"},{"KanbanActivity","活動"},{"KanbanLoading","載入中..."},
+			{"KanbanLoadingCards","載入卡片中..."},{"KanbanFailedToLoad","載入失敗"},
+			{"KanbanNoToken","無認證令牌"},{"KanbanNoTokenHint","請從 iDempiere 選單開啟此表單。"},
+			{"KanbanMoveFailed","移動失敗"},{"KanbanComments","留言"},{"KanbanNoComments","尚無留言"},
+			{"KanbanAddComment","新增留言..."},{"KanbanPost","發佈"},{"KanbanPosting","發佈中..."},
+			{"KanbanAttachments","附件"},{"KanbanNoAttachments","無附件"},{"KanbanUpload","上傳"},
+			{"KanbanUploading","上傳中..."},{"KanbanDeleteConfirm","確定刪除此檔案？"},
+			{"KanbanViewBoard","看板"},{"KanbanViewGantt","甘特圖"},{"KanbanViewMetrics","度量"},
+			{"KanbanSettings","設定"},{"KanbanWipLimits","WIP 限制（每欄）"},{"KanbanWipCards","張卡片"},
+			{"KanbanWipExceeded","此欄已達 WIP 上限"},{"KanbanPriorityColors","優先級顏色"},
+			{"KanbanCycleTime","週期時間（每狀態平均天數）"},{"KanbanThroughput","吞吐量（每週完成數）"},
+			{"KanbanNoData","無資料"},{"KanbanBlock","待決"},{"KanbanUnblock","解除待決"},
+			{"KanbanBoardSource","看板來源"},{"KanbanStatusManagement","狀態管理"},
+			{"KanbanAddStatus","新增狀態"},{"KanbanStatusName","狀態名稱"},{"KanbanStatusType","類型"},
+			{"KanbanStatusOpen","進行中"},{"KanbanStatusClosed","已結案"},{"KanbanStatusFinalClose","最終結案"},
+			{"KanbanDeleteStatus","刪除"},{"KanbanFinalCloseWarning","此操作將永久結案卡片，無法重新開啟。確定繼續？"},
+			{"KanbanCardClosed","卡片已移至結案狀態"},{"KanbanDescribeRequest","描述需求..."},
+			{"KanbanAdditionalDetails","補充說明..."},{"KanbanSelectNone","— 選擇 —"},{"KanbanNone","— 無 —"},
+		};
+		for (String[] m : zhTw) {
+			DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='" + m[1].replace("'","''") + "', IsTranslated='Y' "
+				+ "WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='" + m[0] + "') "
+				+ "AND (IsTranslated='N' OR MsgText IS NULL OR MsgText='')", false, null);
+		}
+		// Menu + Form
+		DB.executeUpdate("UPDATE AD_Menu_Trl SET Name='需求看板', Description='iDempiere 需求工單看板管理', IsTranslated='Y' "
+			+ "WHERE AD_Language='zh_TW' AND AD_Menu_ID=(SELECT AD_Menu_ID FROM AD_Menu WHERE AD_Menu_UU='tw-mxp-idempiere-kanban-menu-001') "
+			+ "AND IsTranslated='N'", false, null);
+		DB.executeUpdate("UPDATE AD_Form_Trl SET Name='需求看板', Description='iDempiere 需求工單看板管理', IsTranslated='Y' "
+			+ "WHERE AD_Language='zh_TW' AND AD_Form_ID=(SELECT AD_Form_ID FROM AD_Form WHERE AD_Form_UU='tw-mxp-idempiere-kanban-form-001') "
+			+ "AND IsTranslated='N'", false, null);
 	}
 
 	private boolean isMigrationApplied(String version) {
