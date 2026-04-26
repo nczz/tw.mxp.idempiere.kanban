@@ -21,6 +21,7 @@ function KanbanApp() {
   const [requestTypeId, setRequestTypeId] = useState<number | undefined>();
   const [search, setSearch] = useState('');
   const [showClosed, setShowClosed] = useState(false);
+  const [orgId, setOrgId] = useState<number | undefined>();
   const [view, setView] = useState<'kanban' | 'gantt' | 'metrics'>('kanban');
   const [groupBy, setGroupBy] = useState<'none' | 'project' | 'salesRep' | 'bpartner' | 'priority'>('none');
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
@@ -29,7 +30,7 @@ function KanbanApp() {
   const [toast, setToast] = useState<{ msg: string; type: 'error' | 'info' } | null>(null);
 
   const { data: init, isLoading: initLoading, error: initError } = useInit();
-  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCards(scope, requestTypeId, search || undefined, showClosed);
+  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCards(scope, requestTypeId, search || undefined, showClosed, orgId);
 
   const showToast = useCallback((msg: string, type: 'error' | 'info' = 'error') => {
     setToast({ msg, type });
@@ -91,6 +92,13 @@ function KanbanApp() {
           requestTypes={init.requestTypes}
           requestTypeId={requestTypeId} onRequestTypeChange={setRequestTypeId}
         />
+        {init.orgs && init.orgs.length > 1 && (
+          <select value={orgId || ''} onChange={(e) => setOrgId(e.target.value ? Number(e.target.value) : undefined)}
+            className="text-xs border border-gray-300 rounded px-2 py-1">
+            <option value="">{t('KanbanAll')} Org</option>
+            {init.orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </select>
+        )}
         <div className="flex-1" />
         {view === 'kanban' && (
           <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}

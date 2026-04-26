@@ -141,6 +141,26 @@ public class InitServlet extends HttpServlet {
 		} catch (Exception e) { /* non-critical */ }
 		result.add("salesReps", salesReps);
 
+		// Orgs accessible by this role
+		JsonArray orgs = new JsonArray();
+		int roleId = AuthContext.getRoleId(req);
+		String orgSql = "SELECT o.AD_Org_ID, o.Name FROM AD_Org o "
+				+ "JOIN AD_Role_OrgAccess ra ON o.AD_Org_ID=ra.AD_Org_ID "
+				+ "WHERE ra.AD_Role_ID=? AND ra.IsActive='Y' AND o.IsActive='Y' AND o.AD_Org_ID>0 "
+				+ "ORDER BY o.Name";
+		try (PreparedStatement pstmt = DB.prepareStatement(orgSql, null)) {
+			pstmt.setInt(1, roleId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					JsonObject o = new JsonObject();
+					o.addProperty("id", rs.getInt("AD_Org_ID"));
+					o.addProperty("name", rs.getString("Name"));
+					orgs.add(o);
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("orgs", orgs);
+
 		// Active BPartners for this client
 		JsonArray bpartners = new JsonArray();
 		String bpSql = "SELECT C_BPartner_ID, Name FROM C_BPartner "

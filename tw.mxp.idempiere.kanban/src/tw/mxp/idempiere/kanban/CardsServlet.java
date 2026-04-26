@@ -110,10 +110,19 @@ public class CardsServlet extends HttpServlet {
 		sql.append("WHERE r.AD_Client_ID = ? ");
 		params.add(clientId);
 
-		// Org filter — show all orgs the role has access to
+		// Org filter — specific org or all accessible orgs
 		int roleId = AuthContext.getRoleId(req);
-		sql.append("AND (r.AD_Org_ID = 0 OR r.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess WHERE AD_Role_ID=? AND IsActive='Y')) ");
-		params.add(roleId);
+		String orgIdParam = req.getParameter("orgId");
+		if (orgIdParam != null && !orgIdParam.isEmpty()) {
+			try {
+				int filterOrgId = Integer.parseInt(orgIdParam);
+				sql.append("AND r.AD_Org_ID = ? ");
+				params.add(filterOrgId);
+			} catch (NumberFormatException ignored) {}
+		} else {
+			sql.append("AND (r.AD_Org_ID = 0 OR r.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess WHERE AD_Role_ID=? AND IsActive='Y')) ");
+			params.add(roleId);
+		}
 
 		// Closed filter
 		sql.append("AND s.IsClosed = ? ");

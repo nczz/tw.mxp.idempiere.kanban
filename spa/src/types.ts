@@ -63,6 +63,7 @@ export interface InitData {
   bpartners: BPartner[];
   projects: Project[];
   user: { id: number; name: string; roleId: number };
+  orgs?: { id: number; name: string }[];
   messages?: Record<string, string>;
   wipLimits?: Record<string, number>;
   priorityColors?: Record<string, string>;
