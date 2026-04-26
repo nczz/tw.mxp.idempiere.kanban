@@ -6,7 +6,7 @@ import {
 } from '@dnd-kit/core';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
-import { useMoveCard } from '../hooks/useCards';
+import { useMoveCard, useReorderCards } from '../hooks/useCards';
 import type { Card, Status } from '../types';
 
 type GroupBy = 'none' | 'project' | 'salesRep' | 'bpartner' | 'priority';
@@ -49,6 +49,7 @@ function SwimlaneRow({ label, statuses, cards, allCards, onError, onCardClick, w
   wipLimits?: Record<string, number>;
 }) {
   const moveCard = useMoveCard();
+  const reorderCards = useReorderCards();
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -72,11 +73,33 @@ function SwimlaneRow({ label, statuses, cards, allCards, onError, onCardClick, w
     if (!over) return;
     const card = cards.find((c) => c.id === active.id);
     if (!card) return;
+
     let targetStatusId: number | undefined;
+    let overCardId: number | undefined;
     const overId = String(over.id);
-    if (overId.startsWith('col-')) targetStatusId = parseInt(overId.replace('col-', ''), 10);
-    else { const oc = cards.find((c) => c.id === over.id); if (oc) targetStatusId = oc.statusId; }
-    if (!targetStatusId || targetStatusId === card.statusId) return;
+    if (overId.startsWith('col-')) {
+      targetStatusId = parseInt(overId.replace('col-', ''), 10);
+    } else {
+      const oc = cards.find((c) => c.id === over.id);
+      if (oc) { targetStatusId = oc.statusId; overCardId = oc.id; }
+    }
+    if (!targetStatusId) return;
+
+    // Same column → reorder
+    if (targetStatusId === card.statusId && overCardId && overCardId !== card.id) {
+      const colCards = [...(cardsByStatus.get(card.statusId) || [])];
+      const fromIdx = colCards.findIndex((c) => c.id === card.id);
+      const toIdx = colCards.findIndex((c) => c.id === overCardId);
+      if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
+        colCards.splice(fromIdx, 1);
+        colCards.splice(toIdx, 0, card);
+        reorderCards.mutate(colCards.map((c) => c.id));
+      }
+      return;
+    }
+
+    // Different column → move
+    if (targetStatusId === card.statusId) return;
 
     const limit = wipLimits?.[String(targetStatusId)];
     if (limit && limit > 0 && (globalStatusCounts.get(targetStatusId) || 0) >= limit) {

@@ -143,3 +143,12 @@ export function useCreateCard() {
     onSettled: () => { qc.invalidateQueries({ queryKey: ['cards'] }); },
   });
 }
+
+export function useReorderCards() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardIds: number[]) =>
+      kanbanFetch('/cards/reorder', { method: 'POST', body: JSON.stringify({ cardIds }) }),
+    onSettled: () => { qc.invalidateQueries({ queryKey: ['cards'] }); },
+  });
+}
