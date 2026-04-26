@@ -92,7 +92,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			int rtId = DB.getSQLValueEx(null, "SELECT R_RequestType_ID FROM R_RequestType WHERE Name='Kanban Task'");
 			if (rtId > 0) saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", String.valueOf(rtId), 0);
 		}
-		log.info("Default Kanban Board created: category=" + catId + " requestType=" + rtId);
+		log.info("Default Kanban Board ensured: category=" + catId);
 	}
 
 	private void saveSysConfig(String name, String value, int clientId) {
