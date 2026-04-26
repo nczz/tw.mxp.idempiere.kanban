@@ -1,7 +1,7 @@
 import { t } from "../i18n";
 import { useState, useRef } from 'react';
 import { useCardDetail, useUpdateCard, useAddComment, useUploadAttachment, useDeleteAttachment } from '../hooks/useCards';
-import { zoomRecord, kanbanFetch } from '../api';
+import { zoomRecord } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
 import { SearchSelect } from './SearchSelect';
 import type { InitData } from '../types';
