@@ -113,26 +113,32 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
           {tab === 'source' && (
             <div className="space-y-1">
               {init.requestTypes.map((rt) => (
-                <div key={rt.id}
-                  onClick={async () => {
+                <RequestTypeRow key={rt.id} rt={rt} isDefault={String(rt.id) === activeRtId}
+                  onSetDefault={async () => {
                     setActiveRtId(String(rt.id));
                     try {
                       await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ activeRequestTypeId: rt.id }) });
                       onSaved(rt.id);
                     } catch (e: any) { onError(e.message); }
                   }}
-                  className={`flex items-center gap-3 px-3 py-2 rounded cursor-pointer text-sm ${
-                    String(rt.id) === activeRtId ? 'bg-blue-50 border border-blue-300' : 'hover:bg-gray-50 border border-transparent'
-                  }`}>
-                  <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    String(rt.id) === activeRtId ? 'border-blue-500' : 'border-gray-300'
-                  }`}>
-                    {String(rt.id) === activeRtId && <span className="w-2 h-2 rounded-full bg-blue-500" />}
-                  </span>
-                  <span className="flex-1">{rt.name}</span>
-                  {String(rt.id) === activeRtId && <span className="text-xs text-blue-500">✓ {t('KanbanDefault')}</span>}
-                </div>
+                  onRename={async (name) => {
+                    try {
+                      await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ renameRequestType: { id: rt.id, name } }) });
+                      onSaved();
+                    } catch (e: any) { onError(e.message); }
+                  }}
+                />
               ))}
+              <NewRequestTypeRow
+                statusCategories={[...new Map(init.requestTypes.map((rt) => [rt.statusCategoryId, rt.statusCategoryId])).keys()]}
+                defaultCategoryId={init.requestTypes.find((rt) => String(rt.id) === activeRtId)?.statusCategoryId || init.requestTypes[0]?.statusCategoryId}
+                onCreate={async (name, catId) => {
+                  try {
+                    await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ createRequestType: { name, statusCategoryId: catId } }) });
+                    onSaved();
+                  } catch (e: any) { onError(e.message); }
+                }}
+              />
             </div>
           )}
 
@@ -206,6 +212,62 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function RequestTypeRow({ rt, isDefault, onSetDefault, onRename }: {
+  rt: { id: number; name: string }; isDefault: boolean;
+  onSetDefault: () => void; onRename: (name: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(rt.name);
+  return (
+    <div className={`flex items-center gap-3 px-3 py-2 rounded text-sm ${
+      isDefault ? 'bg-blue-50 border border-blue-300' : 'hover:bg-gray-50 border border-transparent'
+    }`}>
+      <span onClick={onSetDefault} className={`w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer shrink-0 ${
+        isDefault ? 'border-blue-500' : 'border-gray-300'
+      }`}>
+        {isDefault && <span className="w-2 h-2 rounded-full bg-blue-500" />}
+      </span>
+      {editing ? (
+        <input autoFocus value={name} onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { onRename(name.trim()); setEditing(false); } if (e.key === 'Escape') { setName(rt.name); setEditing(false); } }}
+          onBlur={() => { if (name.trim() && name !== rt.name) onRename(name.trim()); setEditing(false); }}
+          className="flex-1 border rounded px-1.5 py-0.5 text-sm" />
+      ) : (
+        <span className="flex-1 cursor-pointer" onDoubleClick={() => setEditing(true)}>{rt.name}</span>
+      )}
+      {!editing && (
+        <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-gray-600">✏️</button>
+      )}
+    </div>
+  );
+}
+
+function NewRequestTypeRow({ defaultCategoryId, onCreate }: {
+  statusCategories: number[]; defaultCategoryId?: number;
+  onCreate: (name: string, catId: number) => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState('');
+  if (!adding) return (
+    <button onClick={() => setAdding(true)} className="text-xs text-blue-500 hover:text-blue-700 px-3 py-2">
+      + {t('KanbanNew')}
+    </button>
+  );
+  return (
+    <div className="flex items-center gap-2 px-3 py-2">
+      <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t('KanbanStatusName')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && name.trim() && defaultCategoryId) { onCreate(name.trim(), defaultCategoryId); setName(''); setAdding(false); }
+          if (e.key === 'Escape') { setName(''); setAdding(false); }
+        }}
+        className="flex-1 border rounded px-2 py-1 text-sm" />
+      <button onClick={() => { if (name.trim() && defaultCategoryId) { onCreate(name.trim(), defaultCategoryId); setName(''); setAdding(false); } }}
+        className="text-xs bg-blue-500 text-white px-2 py-1 rounded">{t('KanbanCreate')}</button>
+      <button onClick={() => { setName(''); setAdding(false); }} className="text-xs text-gray-400">✕</button>
     </div>
   );
 }

@@ -62,6 +62,25 @@ public class ConfigServlet extends HttpServlet {
 				}
 			}
 
+			// Create new request type
+			if (json.has("createRequestType")) {
+				JsonObject rt = json.getAsJsonObject("createRequestType");
+				String name = rt.get("name").getAsString();
+				int catId = rt.get("statusCategoryId").getAsInt();
+				int rtId = DB.getNextID(clientId, "R_RequestType", null);
+				DB.executeUpdateEx("INSERT INTO R_RequestType (R_RequestType_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+					+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, R_RequestType_UU) "
+					+ "VALUES (?, ?, 0, 'Y', now(), ?, now(), ?, ?, ?, generate_uuid())",
+					new Object[]{rtId, clientId, userId, userId, name, catId}, null);
+			}
+
+			// Rename request type
+			if (json.has("renameRequestType")) {
+				JsonObject rt = json.getAsJsonObject("renameRequestType");
+				DB.executeUpdateEx("UPDATE R_RequestType SET Name=?, Updated=now(), UpdatedBy=? WHERE R_RequestType_ID=? AND AD_Client_ID=?",
+					new Object[]{rt.get("name").getAsString(), userId, rt.get("id").getAsInt(), clientId}, null);
+			}
+
 			// Create new status
 			if (json.has("createStatus")) {
 				JsonObject s = json.getAsJsonObject("createStatus");
