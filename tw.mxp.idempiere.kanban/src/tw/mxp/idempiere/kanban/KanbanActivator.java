@@ -67,6 +67,8 @@ public class KanbanActivator extends Incremental2PackActivator {
 			}
 			if (!isMigrationApplied("1.4.0")) {
 				ensureMessages();
+				// Enable Change Log on R_Request for audit trail
+				DB.executeUpdate("UPDATE AD_Table SET IsChangeLog='Y' WHERE TableName='R_Request' AND IsChangeLog='N'", false, null);
 				recordMigration("1.4.0");
 			}
 		} catch (Exception e) {
