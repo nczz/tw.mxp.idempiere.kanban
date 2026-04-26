@@ -83,6 +83,17 @@ On first start, the plugin automatically:
 
 **No manual SQL, no manual configuration.** Open iDempiere → find "Request Kanban" in menu → start using.
 
+### Language Packs (Optional)
+
+If you enable a new language AFTER installing the plugin, run the corresponding translation file:
+
+```bash
+# zh_TW (繁體中文)
+psql -U adempiere -d idempiere -f i18n/zh_TW.sql
+```
+
+Languages enabled BEFORE install are translated automatically.
+
 ## Architecture
 
 ```
