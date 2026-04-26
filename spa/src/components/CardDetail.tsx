@@ -222,14 +222,14 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           <div className="text-xs font-semibold text-gray-500 mb-1">ERP Links</div>
           <div className="flex flex-wrap gap-1">
             {card.bpartnerId && <ZoomChip label={`🏢 ${card.bpartnerName}`} table="C_BPartner" id={card.bpartnerId} />}
-            {card.productId && <ZoomChip label="📦 Product" table="M_Product" id={card.productId} />}
-            {card.orderId && <ZoomChip label="📋 Order" table="C_Order" id={card.orderId} />}
-            {card.invoiceId && <ZoomChip label="🧾 Invoice" table="C_Invoice" id={card.invoiceId} />}
-            {card.paymentId && <ZoomChip label="💳 Payment" table="C_Payment" id={card.paymentId} />}
-            {card.projectId && <ZoomChip label="📁 Project" table="C_Project" id={card.projectId} />}
-            {card.campaignId && <ZoomChip label="📣 Campaign" table="C_Campaign" id={card.campaignId} />}
-            {card.assetId && <ZoomChip label="🔧 Asset" table="A_Asset" id={card.assetId} />}
-            {card.activityId && <ZoomChip label="📊 Activity" table="C_Activity" id={card.activityId} />}
+            {card.productId && <ZoomChip label={`📦 ${card.productName || 'Product'}`} table="M_Product" id={card.productId} />}
+            {card.orderId && <ZoomChip label={`📋 ${card.orderName || 'Order'}`} table="C_Order" id={card.orderId} />}
+            {card.invoiceId && <ZoomChip label={`🧾 ${card.invoiceName || 'Invoice'}`} table="C_Invoice" id={card.invoiceId} />}
+            {card.paymentId && <ZoomChip label={`💳 ${card.paymentName || 'Payment'}`} table="C_Payment" id={card.paymentId} />}
+            {card.projectId && <ZoomChip label={`📁 ${card.projectName || 'Project'}`} table="C_Project" id={card.projectId} />}
+            {card.campaignId && <ZoomChip label={`📣 ${card.campaignName || 'Campaign'}`} table="C_Campaign" id={card.campaignId} />}
+            {card.assetId && <ZoomChip label={`🔧 ${card.assetName || 'Asset'}`} table="A_Asset" id={card.assetId} />}
+            {card.activityId && <ZoomChip label={`📊 ${card.activityName || 'Activity'}`} table="C_Activity" id={card.activityId} />}
             {!card.bpartnerId && !card.productId && !card.orderId && !card.invoiceId &&
              !card.projectId && <span className="text-xs text-gray-400">No linked records</span>}
           </div>
