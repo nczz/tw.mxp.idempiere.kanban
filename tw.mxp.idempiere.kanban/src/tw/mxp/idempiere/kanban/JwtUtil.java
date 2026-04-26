@@ -11,9 +11,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.compiere.model.MSysConfig;
 
 /**
- * JWT utility — generates and validates tokens using the same HMAC-SHA512 secret
- * as the iDempiere REST API (AD_SysConfig: REST_TOKEN_SECRET).
- * No dependency on com.auth0.jwt — uses standard Java crypto.
+ * JWT utility — generates and validates tokens using HMAC-SHA512.
+ * Secret from AD_SysConfig: KANBAN_TOKEN_SECRET (independent from REST API).
+ * Fallback secret if not configured. No external JWT library dependency.
  */
 public class JwtUtil {
 
@@ -80,10 +80,10 @@ public class JwtUtil {
 	}
 
 	private static String getSecret() {
-		String secret = MSysConfig.getValue("REST_TOKEN_SECRET", "");
+		// Use our own SysConfig key, independent from REST API
+		String secret = MSysConfig.getValue("KANBAN_TOKEN_SECRET", "");
 		if (secret == null || secret.isEmpty()) {
-			// Fallback: use a deterministic secret derived from the DB URL
-			// This ensures all nodes in a cluster use the same secret
+			// Fallback: deterministic secret (same across cluster nodes)
 			secret = "iDempiere-Kanban-" + System.getProperty("ADEMPIERE_DB_NAME", "idempiere");
 		}
 		return secret;
