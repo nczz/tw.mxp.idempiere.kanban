@@ -150,6 +150,7 @@ function KanbanApp() {
             onCardClick={setSelectedCardId}
             wipLimits={init.wipLimits}
             groupBy={groupBy}
+            priorityNames={Object.fromEntries(init.priorities.map((p) => [p.value, p.name]))}
           />
         )}
       </div>

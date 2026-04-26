@@ -18,9 +18,10 @@ interface Props {
   onCardClick: (id: number) => void;
   wipLimits?: Record<string, number>;
   groupBy?: GroupBy;
+  priorityNames?: Record<string, string>;
 }
 
-function groupCards(cards: Card[], groupBy: GroupBy): { key: string; label: string; cards: Card[] }[] {
+function groupCards(cards: Card[], groupBy: GroupBy, priorityNames?: Record<string, string>): { key: string; label: string; cards: Card[] }[] {
   if (groupBy === 'none') return [{ key: '_all', label: '', cards }];
   const map = new Map<string, { label: string; cards: Card[] }>();
   const ungrouped = t('KanbanUngrouped');
@@ -30,7 +31,7 @@ function groupCards(cards: Card[], groupBy: GroupBy): { key: string; label: stri
       case 'project':   key = String(c.projectId || 0);  label = c.projectName || ungrouped; break;
       case 'salesRep':  key = String(c.salesRepId || 0);  label = c.salesRepName || ungrouped; break;
       case 'bpartner':  key = String(c.bpartnerId || 0);  label = c.bpartnerName || ungrouped; break;
-      case 'priority':  key = c.priority || '?';          label = c.priority || ungrouped; break;
+      case 'priority':  key = c.priority || '?';          label = priorityNames?.[c.priority] || c.priority || ungrouped; break;
     }
     if (!key || key === '0') { key = '_ungrouped'; label = ungrouped; }
     if (!map.has(key)) map.set(key, { label, cards: [] });
@@ -112,8 +113,8 @@ function SwimlaneRow({ label, statuses, cards, allCards, onError, onCardClick, w
   );
 }
 
-export function KanbanBoard({ statuses, cards, onError, onCardClick, wipLimits, groupBy = 'none' }: Props) {
-  const groups = useMemo(() => groupCards(cards, groupBy), [cards, groupBy]);
+export function KanbanBoard({ statuses, cards, onError, onCardClick, wipLimits, groupBy = 'none', priorityNames }: Props) {
+  const groups = useMemo(() => groupCards(cards, groupBy, priorityNames), [cards, groupBy, priorityNames]);
 
   if (statuses.length === 0) {
     return <div className="flex items-center justify-center w-full h-full text-gray-400">{t("KanbanNoStatuses")}</div>;
