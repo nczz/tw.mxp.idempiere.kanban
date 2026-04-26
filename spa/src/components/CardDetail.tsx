@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { useCardDetail, useUpdateCard } from '../hooks/useCards';
 import { zoomRecord } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
-import type { Status } from '../types';
 
 interface Props {
   cardId: number;
-  statuses: Status[];
   onClose: () => void;
   onError: (msg: string) => void;
 }
 
-export function CardDetail({ cardId, statuses, onClose, onError }: Props) {
+export function CardDetail({ cardId, onClose, onError }: Props) {
   const { data: card, isLoading } = useCardDetail(cardId);
   const updateCard = useUpdateCard();
   const [editing, setEditing] = useState(false);

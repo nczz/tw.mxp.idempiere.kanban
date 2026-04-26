@@ -102,7 +102,6 @@ function KanbanApp() {
       {selectedCardId && (
         <CardDetail
           cardId={selectedCardId}
-          statuses={statuses}
           onClose={() => setSelectedCardId(null)}
           onError={showToast}
         />
