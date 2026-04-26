@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { KanbanBoard } from './components/KanbanBoard';
+import { GanttView } from './components/GanttView';
 import { ScopeFilter } from './components/ScopeFilter';
 import { CardDetail } from './components/CardDetail';
 import { NewCardDialog } from './components/NewCardDialog';
@@ -17,6 +18,7 @@ function KanbanApp() {
   const [requestTypeId, setRequestTypeId] = useState<number | undefined>();
   const [search, setSearch] = useState('');
   const [showClosed, setShowClosed] = useState(false);
+  const [view, setView] = useState<'kanban' | 'gantt'>('kanban');
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'error' | 'info' } | null>(null);
@@ -82,6 +84,16 @@ function KanbanApp() {
           className={`text-xs px-3 py-1 rounded ${showClosed ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           {showClosed ? t('KanbanClosed') : t('KanbanOpen')}
         </button>
+        <div className="flex gap-1 border rounded overflow-hidden">
+          <button onClick={() => setView('kanban')}
+            className={`text-xs px-2 py-1 ${view === 'kanban' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'}`}>
+            {t('KanbanViewBoard')}
+          </button>
+          <button onClick={() => setView('gantt')}
+            className={`text-xs px-2 py-1 ${view === 'gantt' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'}`}>
+            {t('KanbanViewGantt')}
+          </button>
+        </div>
         <input
           type="text" placeholder={t('KanbanSearch')} value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -95,7 +107,9 @@ function KanbanApp() {
 
       {/* Board */}
       <div className="flex-1 overflow-hidden">
-        {cardsLoading ? (
+        {view === 'gantt' ? (
+          <GanttView scope={scope} requestTypeId={requestTypeId} onCardClick={setSelectedCardId} />
+        ) : cardsLoading ? (
           <div className="flex items-center justify-center h-full text-gray-400">{t('KanbanLoadingCards')}</div>
         ) : (
           <KanbanBoard

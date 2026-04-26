@@ -72,6 +72,8 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanUpload': 'Upload',
   'KanbanUploading': 'Uploading...',
   'KanbanDeleteConfirm': 'Delete this file?',
+  'KanbanViewBoard': 'Board',
+  'KanbanViewGantt': 'Gantt',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };

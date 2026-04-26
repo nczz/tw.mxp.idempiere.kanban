@@ -55,4 +55,13 @@
         <url-pattern>/attachments/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>GanttServlet</servlet-name>
+        <servlet-class>tw.mxp.idempiere.kanban.GanttServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GanttServlet</servlet-name>
+        <url-pattern>/gantt</url-pattern>
+    </servlet-mapping>
+
 </web-app>
