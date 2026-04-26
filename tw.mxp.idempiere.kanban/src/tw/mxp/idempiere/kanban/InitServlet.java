@@ -27,6 +27,9 @@ public class InitServlet extends HttpServlet {
 
 		int clientId = AuthContext.getClientId(req);
 		int userId = AuthContext.getUserId(req);
+		String lang = "en_US";
+		Object reqLang = req.getAttribute("AD_Language");
+		if (reqLang instanceof String && !((String)reqLang).isEmpty()) lang = (String) reqLang;
 
 		JsonObject result = new JsonObject();
 
@@ -92,12 +95,15 @@ public class InitServlet extends HttpServlet {
 		}
 		result.add("statuses", statuses);
 
-		// Priorities from AD_Ref_List (Reference: R_Request Priority)
+		// Priorities from AD_Ref_List (with i18n)
 		JsonArray priorities = new JsonArray();
-		String prSql = "SELECT Value, Name FROM AD_Ref_List WHERE AD_Reference_ID="
-				+ "(SELECT AD_Reference_ID FROM AD_Reference WHERE Name='_PriorityRule' AND IsActive='Y') "
-				+ "AND IsActive='Y' ORDER BY Value";
+		String prSql = "SELECT rl.Value, COALESCE(t.Name, rl.Name) AS Name "
+				+ "FROM AD_Ref_List rl "
+				+ "LEFT JOIN AD_Ref_List_Trl t ON rl.AD_Ref_List_ID=t.AD_Ref_List_ID AND t.AD_Language=? AND t.IsTranslated='Y' "
+				+ "WHERE rl.AD_Reference_ID=(SELECT AD_Reference_ID FROM AD_Reference WHERE Name='_PriorityRule' AND IsActive='Y') "
+				+ "AND rl.IsActive='Y' ORDER BY rl.Value";
 		try (PreparedStatement pstmt = DB.prepareStatement(prSql, null)) {
+			pstmt.setString(1, lang);
 			try (ResultSet rs = pstmt.executeQuery()) {
 				while (rs.next()) {
 					JsonObject p = new JsonObject();
@@ -178,9 +184,6 @@ public class InitServlet extends HttpServlet {
 
 		// i18n messages from AD_Message (keys starting with 'Kanban')
 		JsonObject messages = new JsonObject();
-		String lang = "en_US";
-		Object reqLang = req.getAttribute("AD_Language");
-		if (reqLang instanceof String && !((String)reqLang).isEmpty()) lang = (String) reqLang;
 
 		String msgSql = "SELECT m.Value, COALESCE(t.MsgText, m.MsgText) AS MsgText "
 				+ "FROM AD_Message m "
