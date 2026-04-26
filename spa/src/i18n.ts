@@ -67,6 +67,11 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanAddComment': 'Add comment...',
   'KanbanPost': 'Post',
   'KanbanPosting': 'Posting...',
+  'KanbanAttachments': 'Attachments',
+  'KanbanNoAttachments': 'No attachments',
+  'KanbanUpload': 'Upload',
+  'KanbanUploading': 'Uploading...',
+  'KanbanDeleteConfirm': 'Delete this file?',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };

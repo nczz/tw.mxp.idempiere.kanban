@@ -1,7 +1,7 @@
 import { t } from "../i18n";
-import { useState } from 'react';
-import { useCardDetail, useUpdateCard, useAddComment } from '../hooks/useCards';
-import { zoomRecord } from '../api';
+import { useState, useRef } from 'react';
+import { useCardDetail, useUpdateCard, useAddComment, useUploadAttachment, useDeleteAttachment } from '../hooks/useCards';
+import { zoomRecord, kanbanFetch } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
 import { SearchSelect } from './SearchSelect';
 import type { InitData } from '../types';
@@ -17,6 +17,9 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
   const { data: card, isLoading } = useCardDetail(cardId);
   const updateCard = useUpdateCard();
   const addComment = useAddComment();
+  const uploadAtt = useUploadAttachment();
+  const deleteAtt = useDeleteAttachment();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [commentText, setCommentText] = useState('');
@@ -238,28 +241,46 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           </div>
         </div>
 
-        {/* Move History */}
-        <div>
-          <div className="text-xs font-semibold text-gray-500 mb-1">Move History</div>
-          {card.moveHistory.length === 0 ? (
-            <div className="text-xs text-gray-400">No moves recorded</div>
-          ) : (
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {card.moveHistory.map((h, i) => (
-                <div key={i} className="text-xs flex items-center gap-2 text-gray-600">
-                  <span className="text-gray-400 w-32 flex-shrink-0">{new Date(h.date).toLocaleString()}</span>
-                  <span className="font-medium">{h.userName}</span>
-                  <span className="bg-gray-100 px-1 rounded">{h.fromStatus || '—'}</span>
-                  <span>→</span>
-                  <span className="bg-blue-100 px-1 rounded">{h.toStatus}</span>
+        {/* Move History → moved to bottom */}
+
+        {/* Attachments */}
+        <div className="mb-3">
+          <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanAttachments")}</div>
+          <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(',')[1];
+              uploadAtt.mutate({ cardId, name: file.name, data: base64 });
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+          }} />
+          <button onClick={() => fileInputRef.current?.click()} disabled={uploadAtt.isPending}
+            className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-50 mb-2">
+            📎 {uploadAtt.isPending ? t("KanbanUploading") : t("KanbanUpload")}
+          </button>
+          {card.attachments && card.attachments.length > 0 ? (
+            <div className="space-y-1">
+              {card.attachments.map((a) => (
+                <div key={a.name} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
+                  <a href={`${window.location.origin}/${window.location.pathname.split('/')[1]}/attachments/${cardId}/${encodeURIComponent(a.name)}`}
+                    target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline truncate flex-1">
+                    📄 {a.name} <span className="text-gray-400">({(a.size / 1024).toFixed(1)}KB)</span>
+                  </a>
+                  <button onClick={() => { if (confirm(t("KanbanDeleteConfirm"))) deleteAtt.mutate({ cardId, name: a.name }); }}
+                    className="text-xs text-red-400 hover:text-red-600 ml-2">✕</button>
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="text-xs text-gray-400">{t("KanbanNoAttachments")}</div>
           )}
         </div>
 
         {/* Comments */}
-        <div className="mt-3">
+        <div className="mb-3">
           <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanComments")}</div>
           <div className="flex gap-2 mb-2">
             <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
@@ -285,6 +306,26 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             </div>
           ) : (
             <div className="text-xs text-gray-400">{t("KanbanNoComments")}</div>
+          )}
+        </div>
+
+        {/* Move History (bottom) */}
+        <div>
+          <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanMoveHistory")}</div>
+          {card.moveHistory.length === 0 ? (
+            <div className="text-xs text-gray-400">{t("KanbanNoMoves")}</div>
+          ) : (
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {card.moveHistory.map((h, i) => (
+                <div key={i} className="text-xs flex items-center gap-2 text-gray-600">
+                  <span className="text-gray-400 w-32 flex-shrink-0">{new Date(h.date).toLocaleString()}</span>
+                  <span className="font-medium">{h.userName}</span>
+                  <span className="bg-gray-100 px-1 rounded">{h.fromStatus || '—'}</span>
+                  <span>→</span>
+                  <span className="bg-blue-100 px-1 rounded">{h.toStatus}</span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

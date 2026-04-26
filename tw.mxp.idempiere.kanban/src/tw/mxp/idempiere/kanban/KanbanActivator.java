@@ -102,6 +102,11 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanAddComment", "Add comment...", "新增留言..."},
 			{"KanbanPost", "Post", "發佈"},
 			{"KanbanPosting", "Posting...", "發佈中..."},
+			{"KanbanAttachments", "Attachments", "附件"},
+			{"KanbanNoAttachments", "No attachments", "無附件"},
+			{"KanbanUpload", "Upload", "上傳"},
+			{"KanbanUploading", "Uploading...", "上傳中..."},
+			{"KanbanDeleteConfirm", "Delete this file?", "確定刪除此檔案？"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

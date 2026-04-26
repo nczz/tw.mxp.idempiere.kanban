@@ -54,6 +54,7 @@ export interface CardDetail extends Card {
   activityName?: string;
   moveHistory: { date: number; userName: string; fromStatus: string; toStatus: string; note: string }[];
   comments: { id: number; text: string; date: number; userId: number; userName: string }[];
+  attachments?: { name: string; size: number }[];
 }
 
 export function useCardDetail(cardId: number | null) {
@@ -95,6 +96,28 @@ export function useUpdateCard() {
       qc.invalidateQueries({ queryKey: ['cards'] });
       qc.invalidateQueries({ queryKey: ['card'] });
     },
+  });
+}
+
+export function useUploadAttachment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ cardId, name, data }: { cardId: number; name: string; data: string }) =>
+      kanbanFetch<{ success: boolean }>(`/attachments/${cardId}`, {
+        method: 'POST', body: JSON.stringify({ name, data }),
+      }),
+    onSettled: () => { qc.invalidateQueries({ queryKey: ['card'] }); },
+  });
+}
+
+export function useDeleteAttachment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ cardId, name }: { cardId: number; name: string }) =>
+      kanbanFetch<{ success: boolean }>(`/attachments/${cardId}/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      }),
+    onSettled: () => { qc.invalidateQueries({ queryKey: ['card'] }); },
   });
 }
 

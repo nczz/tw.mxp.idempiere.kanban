@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.adempiere.base.event.EventManager;
+import org.compiere.model.MAttachment;
 import org.compiere.model.MRequest;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
@@ -543,6 +544,22 @@ public class CardsServlet extends HttpServlet {
 			}
 		} catch (Exception ignored) {}
 		card.add("comments", comments);
+
+		// Attachments from AD_Attachment
+		JsonArray attachments = new JsonArray();
+		try {
+			MAttachment att = MAttachment.get(Env.getCtx(), 417, cardId, null);
+			if (att != null) {
+				for (int i = 0; i < att.getEntryCount(); i++) {
+					org.compiere.model.MAttachmentEntry entry = att.getEntry(i);
+					JsonObject f = new JsonObject();
+					f.addProperty("name", entry.getName());
+					f.addProperty("size", entry.getData() != null ? entry.getData().length : 0);
+					attachments.add(f);
+				}
+			}
+		} catch (Exception ignored) {}
+		card.add("attachments", attachments);
 
 		resp.getWriter().print(card.toString());
 	}

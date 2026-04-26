@@ -46,4 +46,13 @@
         <url-pattern>/lookup</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>AttachmentServlet</servlet-name>
+        <servlet-class>tw.mxp.idempiere.kanban.AttachmentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AttachmentServlet</servlet-name>
+        <url-pattern>/attachments/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
