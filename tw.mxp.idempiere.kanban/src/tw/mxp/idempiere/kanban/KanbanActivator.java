@@ -32,9 +32,6 @@ public class KanbanActivator extends Incremental2PackActivator {
 		// — no scan() needed, works on v11-v14
 
 		super.start(context); // processes 2Pack ZIPs + calls afterPackIn()
-
-		// Ensure default board exists (runs every start, idempotent)
-		try { ensureDefaultBoard(); } catch (Exception e) { log.log(Level.WARNING, "ensureDefaultBoard", e); }
 	}
 
 	@Override
