@@ -37,4 +37,13 @@
         <url-pattern>/cards/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>LookupServlet</servlet-name>
+        <servlet-class>tw.mxp.idempiere.kanban.LookupServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookupServlet</servlet-name>
+        <url-pattern>/lookup</url-pattern>
+    </servlet-mapping>
+
 </web-app>

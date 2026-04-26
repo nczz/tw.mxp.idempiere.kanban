@@ -15,12 +15,13 @@ function KanbanApp() {
   const [scope, setScope] = useState('Private');
   const [requestTypeId, setRequestTypeId] = useState<number | undefined>();
   const [search, setSearch] = useState('');
+  const [showClosed, setShowClosed] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'error' | 'info' } | null>(null);
 
   const { data: init, isLoading: initLoading, error: initError } = useInit();
-  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCards(scope, requestTypeId, search || undefined);
+  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCards(scope, requestTypeId, search || undefined, showClosed);
 
   const showToast = useCallback((msg: string, type: 'error' | 'info' = 'error') => {
     setToast({ msg, type });
@@ -60,7 +61,7 @@ function KanbanApp() {
     ? init.requestTypes.find((rt) => rt.id === requestTypeId)?.statusCategoryId
     : undefined;
   const statuses = init.statuses.filter(
-    (s) => !s.isClosed && (statusCategoryId == null || s.statusCategoryId === statusCategoryId)
+    (s) => s.isClosed === showClosed && (statusCategoryId == null || s.statusCategoryId === statusCategoryId)
   );
 
   return (
@@ -73,6 +74,10 @@ function KanbanApp() {
           requestTypeId={requestTypeId} onRequestTypeChange={setRequestTypeId}
         />
         <div className="flex-1" />
+        <button onClick={() => setShowClosed(!showClosed)}
+          className={`text-xs px-3 py-1 rounded ${showClosed ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+          {showClosed ? '📦 Closed' : '📋 Open'}
+        </button>
         <input
           type="text" placeholder="Search..." value={search}
           onChange={(e) => setSearch(e.target.value)}

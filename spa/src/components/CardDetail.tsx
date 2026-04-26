@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCardDetail, useUpdateCard } from '../hooks/useCards';
 import { zoomRecord } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
+import { SearchSelect } from './SearchSelect';
 import type { InitData } from '../types';
 
 interface Props {
@@ -29,8 +30,15 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
       salesRepId: card!.salesRepId,
       requestTypeId: card!.requestTypeId,
       dateNextAction: card!.dateNextAction ? new Date(card!.dateNextAction).toISOString().slice(0, 16) : '',
-      bpartnerId: card!.bpartnerId || 0,
-      projectId: card!.projectId || 0,
+      bpartnerId: card!.bpartnerId || undefined,
+      bpartnerName: card!.bpartnerName || '',
+      productId: card!.productId || undefined,
+      orderId: card!.orderId || undefined,
+      invoiceId: card!.invoiceId || undefined,
+      paymentId: card!.paymentId || undefined,
+      projectId: card!.projectId || undefined,
+      campaignId: card!.campaignId || undefined,
+      assetId: card!.assetId || undefined,
     });
     setEditing(true);
   }
@@ -44,8 +52,13 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
     if (Number(form.salesRepId) !== card!.salesRepId) data.salesRepId = Number(form.salesRepId);
     if (Number(form.requestTypeId) !== card!.requestTypeId) data.requestTypeId = Number(form.requestTypeId);
     if (form.dateNextAction) data.dateNextAction = new Date(form.dateNextAction as string).getTime();
-    if (Number(form.bpartnerId) !== (card!.bpartnerId || 0)) data.bpartnerId = Number(form.bpartnerId);
-    if (Number(form.projectId) !== (card!.projectId || 0)) data.projectId = Number(form.projectId);
+    // ERP links
+    const fkFields = ['bpartnerId','productId','orderId','invoiceId','paymentId','projectId','campaignId','assetId'];
+    for (const fk of fkFields) {
+      const newVal = (form[fk] as number | undefined) || 0;
+      const oldVal = ((card as unknown as Record<string, unknown>)[fk] as number | undefined) || 0;
+      if (newVal !== oldVal) data[fk] = newVal;
+    }
 
     updateCard.mutate(data as { id: number }, {
       onSuccess: () => setEditing(false),
@@ -141,21 +154,32 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               </div>
             </div>
             {/* ERP Links (edit) */}
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div>
-                <label className="text-xs text-gray-500">Business Partner</label>
-                <select value={form.bpartnerId as number} onChange={set('bpartnerId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
-                  <option value="0">— None —</option>
-                  {init.bpartners.map((bp) => <option key={bp.id} value={bp.id}>{bp.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-gray-500">Project</label>
-                <select value={form.projectId as number} onChange={set('projectId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
-                  <option value="0">— None —</option>
-                  {init.projects.map((pj) => <option key={pj.id} value={pj.id}>{pj.name}</option>)}
-                </select>
-              </div>
+            <div className="text-xs font-semibold text-gray-500 mt-3 mb-1">ERP Links</div>
+            <div className="grid grid-cols-2 gap-3">
+              <SearchSelect table="C_BPartner" label="Business Partner"
+                value={form.bpartnerId as number | undefined} valueName={form.bpartnerName as string}
+                onChange={(id, name) => setForm((f) => ({ ...f, bpartnerId: id, bpartnerName: name }))} />
+              <SearchSelect table="M_Product" label="Product"
+                value={form.productId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, productId: id }))} />
+              <SearchSelect table="C_Order" label="Order"
+                value={form.orderId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, orderId: id }))} />
+              <SearchSelect table="C_Invoice" label="Invoice"
+                value={form.invoiceId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, invoiceId: id }))} />
+              <SearchSelect table="C_Payment" label="Payment"
+                value={form.paymentId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, paymentId: id }))} />
+              <SearchSelect table="C_Project" label="Project"
+                value={form.projectId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, projectId: id }))} />
+              <SearchSelect table="C_Campaign" label="Campaign"
+                value={form.campaignId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, campaignId: id }))} />
+              <SearchSelect table="A_Asset" label="Asset"
+                value={form.assetId as number | undefined}
+                onChange={(id) => setForm((f) => ({ ...f, assetId: id }))} />
             </div>
           </div>
         ) : (

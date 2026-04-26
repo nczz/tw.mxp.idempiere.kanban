@@ -11,13 +11,13 @@ export function useInit() {
   });
 }
 
-export function useCards(scope: string, requestTypeId?: number, search?: string) {
-  const params = new URLSearchParams({ scope, closed: 'false' });
+export function useCards(scope: string, requestTypeId?: number, search?: string, closed?: boolean) {
+  const params = new URLSearchParams({ scope, closed: closed ? 'true' : 'false' });
   if (requestTypeId) params.set('requestTypeId', String(requestTypeId));
   if (search) params.set('search', search);
 
   return useQuery<{ cards: Card[] }>({
-    queryKey: ['cards', scope, requestTypeId, search],
+    queryKey: ['cards', scope, requestTypeId, search, closed],
     queryFn: () => kanbanFetch<{ cards: Card[] }>(`/cards?${params}`),
     refetchInterval: 30000,
   });

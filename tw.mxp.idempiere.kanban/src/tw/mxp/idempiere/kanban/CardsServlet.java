@@ -439,8 +439,12 @@ public class CardsServlet extends HttpServlet {
 						request.setDateNextAction(new Timestamp(json.get("dateNextAction").getAsLong()));
 					if (json.has("bpartnerId")) request.setC_BPartner_ID(json.get("bpartnerId").getAsInt());
 					if (json.has("productId")) request.setM_Product_ID(json.get("productId").getAsInt());
+					if (json.has("orderId")) request.set_ValueOfColumn("C_Order_ID", json.get("orderId").getAsInt() > 0 ? json.get("orderId").getAsInt() : null);
+					if (json.has("invoiceId")) request.set_ValueOfColumn("C_Invoice_ID", json.get("invoiceId").getAsInt() > 0 ? json.get("invoiceId").getAsInt() : null);
+					if (json.has("paymentId")) request.set_ValueOfColumn("C_Payment_ID", json.get("paymentId").getAsInt() > 0 ? json.get("paymentId").getAsInt() : null);
 					if (json.has("projectId")) request.setC_Project_ID(json.get("projectId").getAsInt());
 					if (json.has("campaignId")) request.setC_Campaign_ID(json.get("campaignId").getAsInt());
+					if (json.has("assetId")) request.set_ValueOfColumn("A_Asset_ID", json.get("assetId").getAsInt() > 0 ? json.get("assetId").getAsInt() : null);
 					request.saveEx(trxName);
 
 					// Result is updated via direct SQL because MRequest.setResult()
