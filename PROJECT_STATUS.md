@@ -37,5 +37,18 @@ Migration：v1.0.0→v1.5.0（tables, form, menu, board, messages, ChangeLog）
 - Activity Timeline：合併 RK_Card_Move_Log + R_RequestUpdate + AD_ChangeLog
 - Change Log：安裝時自動啟用 R_Request IsChangeLog
 
+## 未來規劃
+
+| 優先級 | 功能 | 說明 |
+|--------|------|------|
+| 🟡 | @mention 通知 | 留言中 @某人 → AD_Note 或 email 通知 |
+| 🟡 | 批次操作 | 多選卡片 → 批次移動/指派/變更優先級 |
+| 🟡 | 卡片模板 | 常用 Request 預設值，一鍵建立 |
+| 🟡 | Dashboard 首頁 | 我的卡片摘要 + 到期提醒 + 今日待辦 |
+| 🟢 | 匯出報表 | CSV/PDF 匯出看板資料 |
+| 🟢 | 鍵盤快捷鍵 | N=新增、/=搜尋、1-3=切換視圖 |
+| 🟢 | 社群發佈準備 | LICENSE、CONTRIBUTING.md、wiki、demo 影片 |
+| 🟢 | Oracle 相容性測試 | migration SQL 有 oracle/ 版本但未測試 |
+
 ## Build
 bash build.sh（SPA + Maven 一次搞定）
