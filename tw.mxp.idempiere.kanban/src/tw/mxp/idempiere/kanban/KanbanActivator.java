@@ -191,7 +191,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			catId = DB.getNextID(0, "R_StatusCategory", null);
 			DB.executeUpdateEx("INSERT INTO R_StatusCategory (R_StatusCategory_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, IsDefault, R_StatusCategory_UU) "
-				+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Board', 'N', generate_uuid())", new Object[]{catId}, null);
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Board', 'N', generate_uuid())", new Object[]{catId}, null);
 		}
 		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM R_Status WHERE R_StatusCategory_ID=?", catId) == 0) {
 			String[][] statuses = {
@@ -204,7 +204,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 				DB.executeUpdateEx("INSERT INTO R_Status (R_Status_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 					+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, R_StatusCategory_ID, SeqNo, "
 					+ "IsOpen, IsClosed, IsFinalClose, IsDefault, R_Status_UU) "
-					+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, ?, ?, ?, ?, ?, ?, ?, ?, generate_uuid())",
+					+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, ?, ?, ?, ?, ?, ?, ?, ?, generate_uuid())",
 					new Object[]{sId, s[0], s[0].replace(" ", ""), catId, Integer.parseInt(s[1]), s[2], s[3], s[4], s[5]}, null);
 			}
 		}
@@ -214,9 +214,8 @@ public class KanbanActivator extends Incremental2PackActivator {
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, R_StatusCategory_ID, IsDefault, "
 				+ "IsSelfService, IsAutoChangeRequest, IsConfidentialInfo, IsEMailWhenDue, IsEMailWhenOverdue, "
 				+ "AutoDueDateDays, ConfidentialType, R_RequestType_UU) "
-				+ "VALUES (?, 0, 0, 'Y', now(), 100, now(), 100, 'Kanban Task', ?, 'N', "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Task', ?, 'N', "
 				+ "'N', 'N', 'N', 'N', 'N', 0, 'A', generate_uuid())", new Object[]{rtId, catId}, null);
-			saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", String.valueOf(rtId), 0);
 		}
 	}
 
@@ -314,7 +313,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 			int id = DB.getNextID(clientId, "AD_SysConfig", null);
 			DB.executeUpdateEx("INSERT INTO AD_SysConfig (AD_SysConfig_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, EntityType, ConfigurationLevel, AD_SysConfig_UU) "
-				+ "VALUES (?, ?, 0, 'Y', now(), 100, now(), 100, ?, ?, 'U', 'C', generate_uuid())", new Object[]{id, clientId, name, value}, null);
+				+ "VALUES (?, ?, 0, 'Y', now(), 0, now(), 0, ?, ?, 'U', 'C', generate_uuid())", new Object[]{id, clientId, name, value}, null);
 		}
 	}
 }
