@@ -77,7 +77,7 @@ public class ConfigServlet extends HttpServlet {
 			// Rename request type
 			if (json.has("renameRequestType")) {
 				JsonObject rt = json.getAsJsonObject("renameRequestType");
-				DB.executeUpdateEx("UPDATE R_RequestType SET Name=?, Updated=now(), UpdatedBy=? WHERE R_RequestType_ID=? AND AD_Client_ID=?",
+				DB.executeUpdateEx("UPDATE R_RequestType SET Name=?, Updated=now(), UpdatedBy=? WHERE R_RequestType_ID=? AND AD_Client_ID IN (0,?)",
 					new Object[]{rt.get("name").getAsString(), userId, rt.get("id").getAsInt(), clientId}, null);
 			}
 
