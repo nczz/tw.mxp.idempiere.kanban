@@ -29,6 +29,9 @@ public class KanbanFormController implements IFormController {
 	public KanbanFormController() {
 		form = new KanbanForm();
 
+		// Guard: if no execution context (bookmark/serialize), skip initialization
+		if (Executions.getCurrent() == null) return;
+
 		// Generate JWT directly from ZK context (no HTTP round-trip)
 		int clientId = Env.getContextAsInt(Env.getCtx(), "#AD_Client_ID");
 		int orgId = Env.getContextAsInt(Env.getCtx(), "#AD_Org_ID");
@@ -79,7 +82,14 @@ public class KanbanFormController implements IFormController {
 	}
 
 	private void setupServerPush(int clientId) {
-		Desktop desktop = Executions.getCurrent().getDesktop();
+		Desktop desktop;
+		try {
+			desktop = Executions.getCurrent().getDesktop();
+		} catch (Exception e) {
+			log.log(Level.FINE, "No desktop available, skipping server push", e);
+			return;
+		}
+		if (desktop == null) return;
 
 		// Enable server push for this desktop
 		desktop.enableServerPush(true);
