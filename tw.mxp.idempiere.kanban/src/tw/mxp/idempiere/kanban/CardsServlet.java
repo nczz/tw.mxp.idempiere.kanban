@@ -98,6 +98,7 @@ public class CardsServlet extends HttpServlet {
 		sql.append("COALESCE(rt.Name, '') AS RequestTypeName, ");
 		sql.append("COALESCE(u.Name, '') AS SalesRepName, ");
 		sql.append("COALESCE(pj.Name, '') AS ProjectName, ");
+		sql.append("COALESCE(o.Name, '') AS OrgName, ");
 		sql.append("(SELECT MAX(l.Created) FROM RK_Card_Move_Log l WHERE l.R_Request_ID=r.R_Request_ID) AS LastMoveAt ");
 		sql.append("FROM R_Request r ");
 		sql.append("JOIN R_Status s ON r.R_Status_ID = s.R_Status_ID ");
@@ -105,14 +106,14 @@ public class CardsServlet extends HttpServlet {
 		sql.append("LEFT JOIN R_RequestType rt ON r.R_RequestType_ID = rt.R_RequestType_ID ");
 		sql.append("LEFT JOIN AD_User u ON r.SalesRep_ID = u.AD_User_ID ");
 		sql.append("LEFT JOIN C_Project pj ON r.C_Project_ID = pj.C_Project_ID ");
+		sql.append("LEFT JOIN AD_Org o ON r.AD_Org_ID = o.AD_Org_ID ");
 		sql.append("WHERE r.AD_Client_ID = ? ");
 		params.add(clientId);
 
-		// Org filter
-		if (orgId > 0) {
-			sql.append("AND (r.AD_Org_ID = 0 OR r.AD_Org_ID = ?) ");
-			params.add(orgId);
-		}
+		// Org filter — show all orgs the role has access to
+		int roleId = AuthContext.getRoleId(req);
+		sql.append("AND (r.AD_Org_ID = 0 OR r.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess WHERE AD_Role_ID=? AND IsActive='Y')) ");
+		params.add(roleId);
 
 		// Closed filter
 		sql.append("AND s.IsClosed = ? ");
@@ -192,6 +193,7 @@ public class CardsServlet extends HttpServlet {
 					card.addProperty("projectId", rs.getInt("C_Project_ID"));
 					card.addProperty("projectName", rs.getString("ProjectName"));
 					card.addProperty("requestTypeName", rs.getString("RequestTypeName"));
+					card.addProperty("orgName", rs.getString("OrgName"));
 					card.addProperty("isEscalated", "Y".equals(rs.getString("IsEscalated")));
 					Timestamp lastMove = rs.getTimestamp("LastMoveAt");
 					if (lastMove != null) card.addProperty("lastMoveAt", lastMove.getTime());

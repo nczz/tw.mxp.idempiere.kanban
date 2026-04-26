@@ -14,6 +14,7 @@ export interface Card {
   projectId: number;
   projectName: string;
   requestTypeName: string;
+  orgName: string;
   lastMoveAt?: number;
   isEscalated?: boolean;
 }

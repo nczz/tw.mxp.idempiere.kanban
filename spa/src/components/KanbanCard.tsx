@@ -1,4 +1,4 @@
-import { priorityHex, priorityLabel, dueColor } from '../utils/priority';
+import { priorityHex, priorityLabel } from '../utils/priority';
 import { t } from '../i18n';
 import type { Card } from '../types';
 
@@ -46,7 +46,7 @@ export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: bool
       )}
       <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
         <span className="truncate max-w-[60%]">👤 {card.salesRepName}</span>
-        {dna && <span className={dueColor(card.dueType)}>{dna}</span>}
+        <span className="truncate max-w-[35%] text-right">{card.orgName || ''}{dna ? ` · ${dna}` : ''}</span>
       </div>
     </div>
   );

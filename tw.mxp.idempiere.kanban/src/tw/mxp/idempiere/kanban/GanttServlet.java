@@ -45,6 +45,11 @@ public class GanttServlet extends HttpServlet {
 		sql.append("WHERE r.AD_Client_ID=? AND r.StartDate IS NOT NULL ");
 		params.add(clientId);
 
+		// Org filter — role-based
+		int roleId = AuthContext.getRoleId(req);
+		sql.append("AND (r.AD_Org_ID=0 OR r.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess WHERE AD_Role_ID=? AND IsActive='Y')) ");
+		params.add(roleId);
+
 		if ("Private".equals(scope)) {
 			sql.append("AND r.SalesRep_ID=? ");
 			params.add(userId);
