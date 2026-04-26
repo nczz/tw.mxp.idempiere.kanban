@@ -33,9 +33,11 @@ public class InitServlet extends HttpServlet {
 
 		JsonObject result = new JsonObject();
 
-		// Active request type (from AD_SysConfig or first available)
+		// Active request type (per-user preference)
 		int activeRtId = 0;
-		String artVal = MSysConfig.getValue("KANBAN_ACTIVE_REQUEST_TYPE", "", clientId);
+		String artVal = DB.getSQLValueStringEx(null,
+			"SELECT Value FROM AD_Preference WHERE Attribute='KANBAN_ACTIVE_REQUEST_TYPE' AND AD_Client_ID=? AND AD_User_ID=? AND AD_Window_ID IS NULL",
+			clientId, userId);
 		if (artVal != null && !artVal.isEmpty()) {
 			try { activeRtId = Integer.parseInt(artVal); } catch (Exception ignored) {}
 		}

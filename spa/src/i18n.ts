@@ -96,6 +96,7 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanStatusFinalClose': '⛔ Final Close',
   'KanbanDeleteStatus': 'Delete',
   'KanbanCannotDelete': 'Cannot delete: cards use this status',
+  'KanbanDefault': 'Default',
   'KanbanFinalCloseWarning': 'This will permanently close the card. It cannot be reopened. Continue?',
   'KanbanCardClosed': 'Card moved to closed status',
   // Swimlanes

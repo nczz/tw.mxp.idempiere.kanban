@@ -111,12 +111,28 @@ export function SettingsDialog({ init, onClose, onSaved, onError }: Props) {
         <div className="flex-1 overflow-y-auto p-4">
           {/* Board Source */}
           {tab === 'source' && (
-            <div>
-              <label className="text-xs text-gray-500">{t('KanbanRequestType')}</label>
-              <select value={activeRtId} onChange={(e) => setActiveRtId(e.target.value)}
-                className="w-full border rounded px-2 py-1.5 text-sm mt-1">
-                {init.requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
-              </select>
+            <div className="space-y-1">
+              {init.requestTypes.map((rt) => (
+                <div key={rt.id}
+                  onClick={async () => {
+                    setActiveRtId(String(rt.id));
+                    try {
+                      await kanbanFetch('/config', { method: 'POST', body: JSON.stringify({ activeRequestTypeId: rt.id }) });
+                      onSaved(rt.id);
+                    } catch (e: any) { onError(e.message); }
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2 rounded cursor-pointer text-sm ${
+                    String(rt.id) === activeRtId ? 'bg-blue-50 border border-blue-300' : 'hover:bg-gray-50 border border-transparent'
+                  }`}>
+                  <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    String(rt.id) === activeRtId ? 'border-blue-500' : 'border-gray-300'
+                  }`}>
+                    {String(rt.id) === activeRtId && <span className="w-2 h-2 rounded-full bg-blue-500" />}
+                  </span>
+                  <span className="flex-1">{rt.name}</span>
+                  {String(rt.id) === activeRtId && <span className="text-xs text-blue-500">✓ {t('KanbanDefault')}</span>}
+                </div>
+              ))}
             </div>
           )}
 

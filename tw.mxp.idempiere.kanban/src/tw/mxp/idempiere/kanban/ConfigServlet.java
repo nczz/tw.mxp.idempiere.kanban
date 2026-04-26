@@ -41,9 +41,9 @@ public class ConfigServlet extends HttpServlet {
 		Env.setContext(ctx, "#AD_User_ID", userId);
 
 		try {
-			// Active request type
+			// Active request type (per-user preference)
 			if (json.has("activeRequestTypeId")) {
-				saveSysConfig("KANBAN_ACTIVE_REQUEST_TYPE", json.get("activeRequestTypeId").getAsString(), clientId);
+				savePreference("KANBAN_ACTIVE_REQUEST_TYPE", json.get("activeRequestTypeId").getAsString(), clientId, userId);
 			}
 
 			// WIP limits
@@ -119,6 +119,22 @@ public class ConfigServlet extends HttpServlet {
 		}
 
 		resp.getWriter().print("{\"success\":true}");
+	}
+
+	private void savePreference(String attribute, String value, int clientId, int userId) {
+		int existing = DB.getSQLValueEx(null,
+			"SELECT AD_Preference_ID FROM AD_Preference WHERE Attribute=? AND AD_Client_ID=? AND AD_User_ID=? AND AD_Window_ID IS NULL",
+			attribute, clientId, userId);
+		if (existing > 0) {
+			DB.executeUpdateEx("UPDATE AD_Preference SET Value=?, Updated=now() WHERE AD_Preference_ID=?",
+				new Object[]{value, existing}, null);
+		} else {
+			int id = DB.getNextID(clientId, "AD_Preference", null);
+			DB.executeUpdateEx("INSERT INTO AD_Preference (AD_Preference_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, AD_User_ID, Attribute, Value, AD_Preference_UU) "
+				+ "VALUES (?, ?, 0, 'Y', now(), ?, now(), ?, ?, ?, ?, generate_uuid())",
+				new Object[]{id, clientId, userId, userId, userId, attribute, value}, null);
+		}
 	}
 
 	private void saveSysConfig(String name, String value, int clientId) {
