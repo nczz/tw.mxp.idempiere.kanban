@@ -40,6 +40,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
     if (form.priority !== card!.priority) data.priority = form.priority;
     if (Number(form.statusId) !== card!.statusId) data.statusId = Number(form.statusId);
     if (Number(form.salesRepId) !== card!.salesRepId) data.salesRepId = Number(form.salesRepId);
+    if (Number(form.requestTypeId) !== card!.requestTypeId) data.requestTypeId = Number(form.requestTypeId);
     if (form.dateNextAction) data.dateNextAction = new Date(form.dateNextAction as string).getTime();
 
     updateCard.mutate(data as { id: number }, {
@@ -53,8 +54,9 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
 
   const fmtDate = (ts: number | null) => ts ? new Date(ts).toLocaleString() : '—';
 
-  // Filter statuses by same category as current request type
-  const rt = init.requestTypes.find((r) => r.id === card.requestTypeId);
+  // Filter statuses by the request type being edited (not the original)
+  const editingRtId = editing ? Number(form.requestTypeId) : card.requestTypeId;
+  const rt = init.requestTypes.find((r) => r.id === editingRtId);
   const availableStatuses = rt
     ? init.statuses.filter((s) => s.statusCategoryId === rt.statusCategoryId)
     : init.statuses;
@@ -112,7 +114,20 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               </div>
               <div>
                 <label className="text-xs text-gray-500">Request Type</label>
-                <select value={form.requestTypeId as number} onChange={set('requestTypeId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" disabled>
+                <select value={form.requestTypeId as number} onChange={(e) => {
+                  const newRtId = Number(e.target.value);
+                  setForm((f) => {
+                    // When type changes, check if current status is still valid
+                    const newRt = init.requestTypes.find((r) => r.id === newRtId);
+                    const newStatuses = newRt ? init.statuses.filter((s) => s.statusCategoryId === newRt.statusCategoryId) : init.statuses;
+                    const currentStatusValid = newStatuses.some((s) => s.id === Number(f.statusId));
+                    return {
+                      ...f,
+                      requestTypeId: newRtId,
+                      statusId: currentStatusValid ? f.statusId : (newStatuses.find((s) => s.isOpen)?.id || newStatuses[0]?.id || f.statusId),
+                    };
+                  });
+                }} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
                   {init.requestTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
                 </select>
               </div>

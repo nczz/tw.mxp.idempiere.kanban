@@ -434,6 +434,7 @@ public class CardsServlet extends HttpServlet {
 					if (json.has("priority")) request.setPriority(json.get("priority").getAsString());
 					if (json.has("statusId")) request.setR_Status_ID(json.get("statusId").getAsInt());
 					if (json.has("salesRepId")) request.setSalesRep_ID(json.get("salesRepId").getAsInt());
+					if (json.has("requestTypeId")) request.setR_RequestType_ID(json.get("requestTypeId").getAsInt());
 					if (json.has("dateNextAction") && !json.get("dateNextAction").isJsonNull())
 						request.setDateNextAction(new Timestamp(json.get("dateNextAction").getAsLong()));
 					request.saveEx(trxName);
