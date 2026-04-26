@@ -11,49 +11,90 @@ export function useInit() {
   });
 }
 
-export function useCards(scope: string, requestTypeId?: number) {
+export function useCards(scope: string, requestTypeId?: number, search?: string) {
   const params = new URLSearchParams({ scope, closed: 'false' });
   if (requestTypeId) params.set('requestTypeId', String(requestTypeId));
+  if (search) params.set('search', search);
 
   return useQuery<{ cards: Card[] }>({
-    queryKey: ['cards', scope, requestTypeId],
+    queryKey: ['cards', scope, requestTypeId, search],
     queryFn: () => kanbanFetch<{ cards: Card[] }>(`/cards?${params}`),
-    refetchInterval: 30000, // fallback polling every 30s if server push fails
+    refetchInterval: 30000,
+  });
+}
+
+export interface CardDetail extends Card {
+  result: string;
+  requestTypeId: number;
+  isEscalated: boolean;
+  startDate: number | null;
+  endTime: number | null;
+  closeDate: number | null;
+  created: number | null;
+  requesterId: number;
+  requesterName: string;
+  createdBy: number;
+  creatorName: string;
+  bpartnerId?: number;
+  productId?: number;
+  orderId?: number;
+  invoiceId?: number;
+  paymentId?: number;
+  projectId?: number;
+  campaignId?: number;
+  assetId?: number;
+  moveHistory: { date: number; userName: string; fromStatus: string; toStatus: string; note: string }[];
+}
+
+export function useCardDetail(cardId: number | null) {
+  return useQuery<CardDetail>({
+    queryKey: ['card', cardId],
+    queryFn: () => kanbanFetch<CardDetail>(`/cards/${cardId}`),
+    enabled: cardId != null && cardId > 0,
   });
 }
 
 export function useMoveCard() {
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, targetStatusId }: { id: number; targetStatusId: number }) =>
       kanbanFetch<{ success: boolean }>(`/cards/${id}/move`, {
-        method: 'POST',
-        body: JSON.stringify({ targetStatusId }),
+        method: 'POST', body: JSON.stringify({ targetStatusId }),
       }),
-
     onMutate: async ({ id, targetStatusId }) => {
       await qc.cancelQueries({ queryKey: ['cards'] });
       const prev = qc.getQueriesData<{ cards: Card[] }>({ queryKey: ['cards'] });
-
-      qc.setQueriesData<{ cards: Card[] }>({ queryKey: ['cards'] }, (old) => {
-        if (!old) return old;
-        return {
-          cards: old.cards.map((c) => (c.id === id ? { ...c, statusId: targetStatusId } : c)),
-        };
-      });
-
+      qc.setQueriesData<{ cards: Card[] }>({ queryKey: ['cards'] }, (old) =>
+        old ? { cards: old.cards.map((c) => (c.id === id ? { ...c, statusId: targetStatusId } : c)) } : old
+      );
       return { prev };
     },
+    onError: (_e, _v, ctx) => { ctx?.prev?.forEach(([k, d]) => { if (d) qc.setQueryData(k, d); }); },
+    onSettled: () => { qc.invalidateQueries({ queryKey: ['cards'] }); },
+  });
+}
 
-    onError: (_err, _vars, context) => {
-      context?.prev?.forEach(([key, data]) => {
-        if (data) qc.setQueryData(key, data);
-      });
-    },
-
+export function useUpdateCard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: number; [key: string]: unknown }) =>
+      kanbanFetch<{ success: boolean }>(`/cards/${id}`, {
+        method: 'PUT', body: JSON.stringify(data),
+      }),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['cards'] });
+      qc.invalidateQueries({ queryKey: ['card'] });
     },
+  });
+}
+
+export function useCreateCard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { summary: string; requestTypeId?: number; bpartnerId?: number; priority?: number }) =>
+      kanbanFetch<{ success: boolean; id: number }>('/cards', {
+        method: 'POST', body: JSON.stringify(data),
+      }),
+    onSettled: () => { qc.invalidateQueries({ queryKey: ['cards'] }); },
   });
 }

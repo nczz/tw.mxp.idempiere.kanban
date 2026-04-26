@@ -41,9 +41,8 @@ public class CardsServlet extends HttpServlet {
 		if (pathInfo == null || pathInfo.equals("/")) {
 			listCards(req, resp);
 		} else {
-			// Phase 2: GET /cards/{id} for single card detail
-			resp.setStatus(404);
-			resp.getWriter().print("{\"error\":\"Not implemented\"}");
+			// GET /cards/{id} — single card detail
+			getCardDetail(req, resp, pathInfo);
 		}
 	}
 
@@ -54,11 +53,18 @@ public class CardsServlet extends HttpServlet {
 
 		if (pathInfo != null && pathInfo.endsWith("/move")) {
 			moveCard(req, resp, pathInfo);
+		} else if (pathInfo == null || pathInfo.equals("/")) {
+			createCard(req, resp);
 		} else {
-			// Phase 2: POST /cards for new request
 			resp.setStatus(404);
-			resp.getWriter().print("{\"error\":\"Not implemented\"}");
+			resp.getWriter().print("{\"error\":\"Not found\"}");
 		}
+	}
+
+	@Override
+	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		resp.setContentType("application/json; charset=UTF-8");
+		updateCard(req, resp);
 	}
 
 	/**
@@ -72,6 +78,7 @@ public class CardsServlet extends HttpServlet {
 		if (scope == null) scope = "Private";
 		String requestTypeIdParam = req.getParameter("requestTypeId");
 		boolean closed = "true".equals(req.getParameter("closed"));
+		String search = req.getParameter("search");
 
 		// Build SQL
 		StringBuilder sql = new StringBuilder();
@@ -135,6 +142,15 @@ public class CardsServlet extends HttpServlet {
 				sql.append("AND r.SalesRep_ID = ? ");
 				params.add(userId);
 				break;
+		}
+
+		// Search filter
+		if (search != null && !search.trim().isEmpty()) {
+			sql.append("AND (LOWER(r.Summary) LIKE ? OR LOWER(r.DocumentNo) LIKE ? OR LOWER(COALESCE(bp.Name,'')) LIKE ?) ");
+			String like = "%" + search.trim().toLowerCase() + "%";
+			params.add(like);
+			params.add(like);
+			params.add(like);
 		}
 
 		sql.append("ORDER BY s.SeqNo, r.Priority, r.DateNextAction NULLS LAST");
@@ -279,6 +295,243 @@ public class CardsServlet extends HttpServlet {
 		resp.getWriter().print("{\"error\":\"" + msg + "\"}");
 	}
 
+	// ============================================================
+	// GET /cards/{id} — single card detail with move history
+	// ============================================================
+	private void getCardDetail(HttpServletRequest req, HttpServletResponse resp, String pathInfo) throws IOException {
+		int cardId = parsePathId(pathInfo);
+		if (cardId <= 0) { resp.setStatus(400); resp.getWriter().print("{\"error\":\"Invalid ID\"}"); return; }
+
+		int clientId = AuthContext.getClientId(req);
+		String sql = "SELECT r.R_Request_ID, r.DocumentNo, r.Summary, r.Result, "
+			+ "r.R_Status_ID, r.R_RequestType_ID, r.R_Category_ID, "
+			+ "r.Priority, r.PriorityUser, r.DueType, r.DateNextAction, r.StartDate, r.EndTime, r.CloseDate, "
+			+ "r.SalesRep_ID, r.AD_User_ID, r.CreatedBy, r.Created, "
+			+ "r.C_BPartner_ID, r.M_Product_ID, r.C_Order_ID, r.C_Invoice_ID, "
+			+ "r.C_Payment_ID, r.C_Project_ID, r.C_Campaign_ID, r.A_Asset_ID, "
+			+ "r.IsEscalated, "
+			+ "COALESCE(bp.Name,'') AS BPartnerName, "
+			+ "COALESCE(rt.Name,'') AS RequestTypeName, "
+			+ "COALESCE(sr.Name,'') AS SalesRepName, "
+			+ "COALESCE(req.Name,'') AS RequesterName, "
+			+ "COALESCE(cr.Name,'') AS CreatorName, "
+			+ "s.Name AS StatusName "
+			+ "FROM R_Request r "
+			+ "JOIN R_Status s ON r.R_Status_ID=s.R_Status_ID "
+			+ "LEFT JOIN C_BPartner bp ON r.C_BPartner_ID=bp.C_BPartner_ID "
+			+ "LEFT JOIN R_RequestType rt ON r.R_RequestType_ID=rt.R_RequestType_ID "
+			+ "LEFT JOIN AD_User sr ON r.SalesRep_ID=sr.AD_User_ID "
+			+ "LEFT JOIN AD_User req ON r.AD_User_ID=req.AD_User_ID "
+			+ "LEFT JOIN AD_User cr ON r.CreatedBy=cr.AD_User_ID "
+			+ "WHERE r.R_Request_ID=? AND r.AD_Client_ID=?";
+
+		JsonObject card = null;
+		try (PreparedStatement pstmt = DB.prepareStatement(sql, null)) {
+			pstmt.setInt(1, cardId);
+			pstmt.setInt(2, clientId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					card = new JsonObject();
+					card.addProperty("id", rs.getInt("R_Request_ID"));
+					card.addProperty("documentNo", rs.getString("DocumentNo"));
+					card.addProperty("summary", nvl(rs.getString("Summary")));
+					card.addProperty("result", nvl(rs.getString("Result")));
+					card.addProperty("statusId", rs.getInt("R_Status_ID"));
+					card.addProperty("statusName", rs.getString("StatusName"));
+					card.addProperty("requestTypeId", rs.getInt("R_RequestType_ID"));
+					card.addProperty("requestTypeName", rs.getString("RequestTypeName"));
+					card.addProperty("priority", nvl(rs.getString("Priority")));
+					card.addProperty("dueType", nvl(rs.getString("DueType")));
+					card.addProperty("isEscalated", "Y".equals(rs.getString("IsEscalated")));
+					// Dates
+					addTimestamp(card, "dateNextAction", rs.getTimestamp("DateNextAction"));
+					addTimestamp(card, "startDate", rs.getTimestamp("StartDate"));
+					addTimestamp(card, "endTime", rs.getTimestamp("EndTime"));
+					addTimestamp(card, "closeDate", rs.getTimestamp("CloseDate"));
+					addTimestamp(card, "created", rs.getTimestamp("Created"));
+					// People
+					card.addProperty("salesRepId", rs.getInt("SalesRep_ID"));
+					card.addProperty("salesRepName", rs.getString("SalesRepName"));
+					card.addProperty("requesterId", rs.getInt("AD_User_ID"));
+					card.addProperty("requesterName", rs.getString("RequesterName"));
+					card.addProperty("createdBy", rs.getInt("CreatedBy"));
+					card.addProperty("creatorName", rs.getString("CreatorName"));
+					// ERP relationships
+					addFk(card, "bpartnerId", rs, "C_BPartner_ID");
+					card.addProperty("bpartnerName", rs.getString("BPartnerName"));
+					addFk(card, "productId", rs, "M_Product_ID");
+					addFk(card, "orderId", rs, "C_Order_ID");
+					addFk(card, "invoiceId", rs, "C_Invoice_ID");
+					addFk(card, "paymentId", rs, "C_Payment_ID");
+					addFk(card, "projectId", rs, "C_Project_ID");
+					addFk(card, "campaignId", rs, "C_Campaign_ID");
+					addFk(card, "assetId", rs, "A_Asset_ID");
+				}
+			}
+		} catch (Exception e) { sendError(resp, 500, e); return; }
+
+		if (card == null) { resp.setStatus(404); resp.getWriter().print("{\"error\":\"Not found\"}"); return; }
+
+		// Move history
+		JsonArray history = new JsonArray();
+		String hSql = "SELECT l.Created, l.CreatedBy, l.R_Status_ID_From, l.R_Status_ID_To, l.Note, "
+			+ "COALESCE(u.Name,'') AS UserName, "
+			+ "COALESCE(sf.Name,'') AS FromStatus, COALESCE(st.Name,'') AS ToStatus "
+			+ "FROM RK_Card_Move_Log l "
+			+ "LEFT JOIN AD_User u ON l.CreatedBy=u.AD_User_ID "
+			+ "LEFT JOIN R_Status sf ON l.R_Status_ID_From=sf.R_Status_ID "
+			+ "LEFT JOIN R_Status st ON l.R_Status_ID_To=st.R_Status_ID "
+			+ "WHERE l.R_Request_ID=? ORDER BY l.Created DESC";
+		try (PreparedStatement pstmt = DB.prepareStatement(hSql, null)) {
+			pstmt.setInt(1, cardId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					JsonObject h = new JsonObject();
+					addTimestamp(h, "date", rs.getTimestamp("Created"));
+					h.addProperty("userName", rs.getString("UserName"));
+					h.addProperty("fromStatus", rs.getString("FromStatus"));
+					h.addProperty("toStatus", rs.getString("ToStatus"));
+					h.addProperty("note", nvl(rs.getString("Note")));
+					history.add(h);
+				}
+			}
+		} catch (Exception ignored) {}
+
+		card.add("moveHistory", history);
+		resp.getWriter().print(card.toString());
+	}
+
+	// ============================================================
+	// PUT /cards/{id} — update card fields
+	// ============================================================
+	private void updateCard(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String pathInfo = req.getPathInfo();
+		int cardId = parsePathId(pathInfo);
+		if (cardId <= 0) { resp.setStatus(400); resp.getWriter().print("{\"error\":\"Invalid ID\"}"); return; }
+
+		int clientId = AuthContext.getClientId(req);
+		int userId = AuthContext.getUserId(req);
+
+		// Verify ownership
+		int cardClientId = DB.getSQLValueEx(null, "SELECT AD_Client_ID FROM R_Request WHERE R_Request_ID=?", cardId);
+		if (cardClientId != clientId) { resp.setStatus(403); resp.getWriter().print("{\"error\":\"Access denied\"}"); return; }
+
+		StringBuilder body = new StringBuilder();
+		req.getReader().lines().forEach(body::append);
+		String json = body.toString();
+
+		try {
+			Properties ctx = Env.getCtx();
+			Env.setContext(ctx, "#AD_Client_ID", clientId);
+			Env.setContext(ctx, "#AD_Org_ID", AuthContext.getOrgId(req));
+			Env.setContext(ctx, "#AD_User_ID", userId);
+
+			Trx.run(new TrxRunnable() {
+				@Override
+				public void run(String trxName) {
+					MRequest request = new MRequest(Env.getCtx(), cardId, trxName);
+					// Update fields if present in JSON
+					String summary = extractString(json, "summary");
+					if (summary != null) request.setSummary(summary);
+					String result = extractString(json, "result");
+					if (result != null) request.setResult(result);
+					int priority = extractInt(json, "priority");
+					if (priority > 0) request.setPriority(String.valueOf(priority));
+					int statusId = extractInt(json, "statusId");
+					if (statusId > 0) request.setR_Status_ID(statusId);
+					int salesRepId = extractInt(json, "salesRepId");
+					if (salesRepId > 0) request.setSalesRep_ID(salesRepId);
+					int dateNA = extractInt(json, "dateNextAction");
+					if (dateNA > 0) request.setDateNextAction(new Timestamp(dateNA));
+					request.saveEx(trxName);
+				}
+			});
+		} catch (Exception e) { sendError(resp, 500, e); return; }
+
+		JsonObject result = new JsonObject();
+		result.addProperty("success", true);
+		resp.getWriter().print(result.toString());
+	}
+
+	// ============================================================
+	// POST /cards — create new request
+	// ============================================================
+	private void createCard(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		int clientId = AuthContext.getClientId(req);
+		int orgId = AuthContext.getOrgId(req);
+		int userId = AuthContext.getUserId(req);
+
+		StringBuilder body = new StringBuilder();
+		req.getReader().lines().forEach(body::append);
+		String json = body.toString();
+
+		String summary = extractString(json, "summary");
+		if (summary == null || summary.isEmpty()) {
+			resp.setStatus(400); resp.getWriter().print("{\"error\":\"Summary is required\"}"); return;
+		}
+
+		final int[] newId = {0};
+		try {
+			Properties ctx = Env.getCtx();
+			Env.setContext(ctx, "#AD_Client_ID", clientId);
+			Env.setContext(ctx, "#AD_Org_ID", orgId > 0 ? orgId : DB.getSQLValueEx(null,
+				"SELECT MIN(AD_Org_ID) FROM AD_Org WHERE AD_Client_ID=? AND AD_Org_ID>0 AND IsActive='Y'", clientId));
+			Env.setContext(ctx, "#AD_User_ID", userId);
+
+			Trx.run(new TrxRunnable() {
+				@Override
+				public void run(String trxName) {
+					MRequest request = new MRequest(Env.getCtx(), 0, trxName);
+					request.setSummary(summary);
+					request.setSalesRep_ID(userId);
+					int rtId = extractInt(json, "requestTypeId");
+					if (rtId > 0) request.setR_RequestType_ID(rtId);
+					int bpId = extractInt(json, "bpartnerId");
+					if (bpId > 0) request.setC_BPartner_ID(bpId);
+					int priority = extractInt(json, "priority");
+					if (priority > 0) request.setPriority(String.valueOf(priority));
+					request.saveEx(trxName);
+					newId[0] = request.getR_Request_ID();
+				}
+			});
+		} catch (Exception e) { sendError(resp, 500, e); return; }
+
+		// Publish refresh event
+		try {
+			Map<String, Object> eventData = new HashMap<>();
+			eventData.put("AD_Client_ID", clientId);
+			eventData.put("R_Request_ID", newId[0]);
+			EventManager.getInstance().sendEvent(EventManager.newEvent("kanban/refresh", eventData));
+		} catch (Exception ignored) {}
+
+		JsonObject result = new JsonObject();
+		result.addProperty("success", true);
+		result.addProperty("id", newId[0]);
+		resp.setStatus(201);
+		resp.getWriter().print(result.toString());
+	}
+
+	// ============================================================
+	// Helpers
+	// ============================================================
+	private static void addTimestamp(JsonObject obj, String key, Timestamp ts) {
+		if (ts != null) obj.addProperty(key, ts.getTime());
+	}
+
+	private static void addFk(JsonObject obj, String key, ResultSet rs, String col) throws java.sql.SQLException {
+		int v = rs.getInt(col);
+		if (!rs.wasNull() && v > 0) obj.addProperty(key, v);
+	}
+
+	private static int parsePathId(String pathInfo) {
+		if (pathInfo == null) return -1;
+		String[] parts = pathInfo.split("/");
+		for (String p : parts) {
+			try { return Integer.parseInt(p); } catch (NumberFormatException ignored) {}
+		}
+		return -1;
+	}
+
 	private static String nvl(String s) {
 		return s != null ? s : "";
 	}
@@ -296,5 +549,15 @@ public class CardsServlet extends HttpServlet {
 			else if (sb.length() > 0) break;
 		}
 		return sb.length() > 0 ? Integer.parseInt(sb.toString()) : -1;
+	}
+
+	private static String extractString(String json, String key) {
+		if (json == null) return null;
+		String search = "\"" + key + "\":\"";
+		int idx = json.indexOf(search);
+		if (idx < 0) return null;
+		idx += search.length();
+		int end = json.indexOf("\"", idx);
+		return end > idx ? json.substring(idx, end).replace("\\\"", "\"").replace("\\n", "\n") : null;
 	}
 }
