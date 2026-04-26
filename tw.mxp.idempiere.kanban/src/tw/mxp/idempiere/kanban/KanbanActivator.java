@@ -40,6 +40,82 @@ public class KanbanActivator extends Incremental2PackActivator {
 		ensureTables();
 		ensureForm();
 		ensureMenu();
+		ensureMessages();
+	}
+
+	private void ensureMessages() {
+		String[][] msgs = {
+			// key, en_US, zh_TW
+			{"KanbanPrivate", "Private", "個人"},
+			{"KanbanSubordinates", "Subordinates", "部屬"},
+			{"KanbanAll", "All", "全部"},
+			{"KanbanAllTypes", "All Types", "所有類型"},
+			{"KanbanSearch", "Search...", "搜尋..."},
+			{"KanbanNew", "+ New", "+ 新增"},
+			{"KanbanOpen", "📋 Open", "📋 進行中"},
+			{"KanbanClosed", "📦 Closed", "📦 已結案"},
+			{"KanbanNoCards", "No cards", "沒有卡片"},
+			{"KanbanNoStatuses", "No statuses configured.", "尚未設定狀態。"},
+			{"KanbanEdit", "Edit", "編輯"},
+			{"KanbanSave", "Save", "儲存"},
+			{"KanbanSaving", "Saving...", "儲存中..."},
+			{"KanbanCancel", "Cancel", "取消"},
+			{"KanbanNotesResult", "Notes / Result", "備註 / 結果"},
+			{"KanbanNoNotes", "No notes", "無備註"},
+			{"KanbanERPLinks", "ERP Links", "ERP 關聯"},
+			{"KanbanNoLinks", "No linked records", "無關聯記錄"},
+			{"KanbanMoveHistory", "Move History", "移動歷程"},
+			{"KanbanNoMoves", "No moves recorded", "無移動記錄"},
+			{"KanbanEscalated", "Escalated", "已升級"},
+			{"KanbanNewRequest", "New Request", "新增需求"},
+			{"KanbanSummary", "Summary", "摘要"},
+			{"KanbanCreate", "Create", "建立"},
+			{"KanbanCreating", "Creating...", "建立中..."},
+			{"KanbanStatus", "Status", "狀態"},
+			{"KanbanRequestType", "Request Type", "需求類型"},
+			{"KanbanPriority", "Priority", "優先級"},
+			{"KanbanSalesRep", "Sales Rep", "負責人"},
+			{"KanbanRequester", "Requester", "請求者"},
+			{"KanbanCreatedBy", "Created By", "建立者"},
+			{"KanbanCreated", "Created", "建立時間"},
+			{"KanbanNextAction", "Next Action", "下次動作"},
+			{"KanbanStartDate", "Start Date", "開始日期"},
+			{"KanbanCloseDate", "Close Date", "結案日期"},
+			{"KanbanDateNextAction", "Date Next Action", "下次動作日"},
+			{"KanbanBusinessPartner", "Business Partner", "業務夥伴"},
+			{"KanbanProduct", "Product", "產品"},
+			{"KanbanOrder", "Order", "訂單"},
+			{"KanbanInvoice", "Invoice", "發票"},
+			{"KanbanPayment", "Payment", "付款"},
+			{"KanbanProject", "Project", "專案"},
+			{"KanbanCampaign", "Campaign", "行銷活動"},
+			{"KanbanAsset", "Asset", "資產"},
+			{"KanbanActivity", "Activity", "活動"},
+			{"KanbanLoading", "Loading...", "載入中..."},
+			{"KanbanLoadingCards", "Loading cards...", "載入卡片中..."},
+			{"KanbanFailedToLoad", "Failed to load", "載入失敗"},
+			{"KanbanNoToken", "No authentication token", "無認證令牌"},
+			{"KanbanNoTokenHint", "Please open this form from the iDempiere menu.", "請從 iDempiere 選單開啟此表單。"},
+			{"KanbanMoveFailed", "Move failed", "移動失敗"},
+		};
+		for (String[] m : msgs) {
+			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;
+			int id = DB.getNextID(0, "AD_Message", null);
+			DB.executeUpdateEx("INSERT INTO AD_Message (AD_Message_ID,AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,"
+				+ "Updated,UpdatedBy,Value,MsgText,MsgType,EntityType,AD_Message_UU) "
+				+ "VALUES (?,0,0,'Y',now(),100,now(),100,?,?,'I','U',generate_uuid())",
+				new Object[]{id, m[0], m[1]}, null);
+			// Translations for all system languages
+			DB.executeUpdate("INSERT INTO AD_Message_Trl (AD_Message_ID,AD_Language,AD_Client_ID,AD_Org_ID,IsActive,"
+				+ "Created,CreatedBy,Updated,UpdatedBy,MsgText,MsgTip,IsTranslated,AD_Message_Trl_UU) "
+				+ "SELECT "+id+",l.AD_Language,0,0,'Y',now(),100,now(),100,'"+m[1]+"',NULL,'N',generate_uuid() "
+				+ "FROM AD_Language l WHERE l.IsActive='Y' AND l.IsSystemLanguage='Y' AND l.IsBaseLanguage='N' "
+				+ "AND NOT EXISTS (SELECT 1 FROM AD_Message_Trl t WHERE t.AD_Message_ID="+id+" AND t.AD_Language=l.AD_Language)",
+				false, null);
+			// zh_TW
+			DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='"+m[2].replace("'","''")+"',IsTranslated='Y' "
+				+ "WHERE AD_Message_ID="+id+" AND AD_Language='zh_TW'", false, null);
+		}
 	}
 
 	private void ensureTables() {

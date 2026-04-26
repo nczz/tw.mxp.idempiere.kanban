@@ -6,6 +6,7 @@ import { CardDetail } from './components/CardDetail';
 import { NewCardDialog } from './components/NewCardDialog';
 import { useInit, useCards } from './hooks/useCards';
 import { hasToken } from './api';
+import { setMessages, t } from './i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -47,15 +48,18 @@ function KanbanApp() {
     return (
       <div className="flex items-center justify-center h-screen text-gray-500 text-sm">
         <div className="text-center">
-          <div className="text-lg mb-2">⚠️ No authentication token</div>
-          <div>Please open this form from the iDempiere menu.</div>
+          <div className="text-lg mb-2">⚠️ {t('KanbanNoToken')}</div>
+          <div>{t('KanbanNoTokenHint')}</div>
         </div>
       </div>
     );
   }
 
-  if (initLoading) return <div className="flex items-center justify-center h-screen text-gray-400">Loading...</div>;
-  if (!init) return <div className="flex items-center justify-center h-screen text-red-500">Failed to load</div>;
+  if (initLoading) return <div className="flex items-center justify-center h-screen text-gray-400">{t('KanbanLoading')}</div>;
+  if (!init) return <div className="flex items-center justify-center h-screen text-red-500">{t('KanbanFailedToLoad')}</div>;
+
+  // Initialize i18n with server translations
+  if (init.messages) setMessages(init.messages as unknown as Record<string, string>);
 
   const statusCategoryId = requestTypeId
     ? init.requestTypes.find((rt) => rt.id === requestTypeId)?.statusCategoryId
@@ -76,23 +80,23 @@ function KanbanApp() {
         <div className="flex-1" />
         <button onClick={() => setShowClosed(!showClosed)}
           className={`text-xs px-3 py-1 rounded ${showClosed ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-          {showClosed ? '📦 Closed' : '📋 Open'}
+          {showClosed ? t('KanbanClosed') : t('KanbanOpen')}
         </button>
         <input
-          type="text" placeholder="Search..." value={search}
+          type="text" placeholder={t('KanbanSearch')} value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="text-sm border border-gray-300 rounded px-2 py-1 w-48"
         />
         <button onClick={() => setShowNewCard(true)}
           className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
-          + New
+          {t('KanbanNew')}
         </button>
       </div>
 
       {/* Board */}
       <div className="flex-1 overflow-hidden">
         {cardsLoading ? (
-          <div className="flex items-center justify-center h-full text-gray-400">Loading cards...</div>
+          <div className="flex items-center justify-center h-full text-gray-400">{t('KanbanLoadingCards')}</div>
         ) : (
           <KanbanBoard
             statuses={statuses}

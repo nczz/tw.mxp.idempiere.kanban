@@ -57,4 +57,5 @@ export interface InitData {
   bpartners: BPartner[];
   projects: Project[];
   user: { id: number; name: string; roleId: number };
+  messages?: Record<string, string>;
 }

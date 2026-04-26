@@ -9,6 +9,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.compiere.model.MSysConfig;
+import org.compiere.util.Env;
 
 /**
  * JWT utility — generates and validates tokens using HMAC-SHA512.
@@ -25,6 +26,8 @@ public class JwtUtil {
 	 */
 	public static String generate(int clientId, int orgId, int userId, int roleId, String userName) {
 		try {
+			String lang = Env.getContext(Env.getCtx(), "#AD_Language");
+			if (lang == null || lang.isEmpty()) lang = "en_US";
 			long exp = (System.currentTimeMillis() / 1000) + DEFAULT_EXPIRY_SECONDS;
 			StringBuilder payload = new StringBuilder();
 			payload.append("{\"sub\":\"").append(esc(userName)).append("\"");
@@ -32,6 +35,7 @@ public class JwtUtil {
 			payload.append(",\"AD_User_ID\":").append(userId);
 			payload.append(",\"AD_Role_ID\":").append(roleId);
 			payload.append(",\"AD_Org_ID\":").append(orgId);
+			payload.append(",\"AD_Language\":\"").append(esc(lang)).append("\"");
 			payload.append(",\"iss\":\"idempiere.org\"");
 			payload.append(",\"exp\":").append(exp);
 			payload.append("}");
@@ -73,6 +77,8 @@ public class JwtUtil {
 			claims.put("AD_Org_ID", extractInt(payload, "AD_Org_ID"));
 			claims.put("AD_User_ID", extractInt(payload, "AD_User_ID"));
 			claims.put("AD_Role_ID", extractInt(payload, "AD_Role_ID"));
+			String lang = extractStr(payload, "AD_Language");
+			if (lang != null) claims.put("AD_Language", lang);
 			return claims;
 		} catch (Exception e) {
 			return null;
@@ -105,6 +111,15 @@ public class JwtUtil {
 
 	private static String esc(String s) {
 		return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
+	}
+
+	private static String extractStr(String json, String key) {
+		String search = "\"" + key + "\":\"";
+		int idx = json.indexOf(search);
+		if (idx < 0) return null;
+		idx += search.length();
+		int end = json.indexOf("\"", idx);
+		return end > idx ? json.substring(idx, end) : null;
 	}
 
 	private static int extractInt(String json, String key) {

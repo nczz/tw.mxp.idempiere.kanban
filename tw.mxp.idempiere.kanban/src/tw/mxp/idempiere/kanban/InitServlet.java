@@ -166,6 +166,26 @@ public class InitServlet extends HttpServlet {
 		user.addProperty("roleId", AuthContext.getRoleId(req));
 		result.add("user", user);
 
+		// i18n messages from AD_Message (keys starting with 'Kanban')
+		JsonObject messages = new JsonObject();
+		String lang = "en_US";
+		Object reqLang = req.getAttribute("AD_Language");
+		if (reqLang instanceof String && !((String)reqLang).isEmpty()) lang = (String) reqLang;
+
+		String msgSql = "SELECT m.Value, COALESCE(t.MsgText, m.MsgText) AS MsgText "
+				+ "FROM AD_Message m "
+				+ "LEFT JOIN AD_Message_Trl t ON m.AD_Message_ID=t.AD_Message_ID AND t.AD_Language=? AND t.IsTranslated='Y' "
+				+ "WHERE m.Value LIKE 'Kanban%' AND m.IsActive='Y'";
+		try (PreparedStatement pstmt = DB.prepareStatement(msgSql, null)) {
+			pstmt.setString(1, lang);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					messages.addProperty(rs.getString("Value"), rs.getString("MsgText"));
+				}
+			}
+		} catch (Exception e) { /* non-critical */ }
+		result.add("messages", messages);
+
 		resp.getWriter().print(result.toString());
 	}
 

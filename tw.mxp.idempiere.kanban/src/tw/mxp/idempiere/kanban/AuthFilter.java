@@ -52,6 +52,7 @@ public class AuthFilter implements Filter {
 		req.setAttribute("AD_Org_ID", claims.get("AD_Org_ID"));
 		req.setAttribute("AD_User_ID", claims.get("AD_User_ID"));
 		req.setAttribute("AD_Role_ID", claims.get("AD_Role_ID"));
+		req.setAttribute("AD_Language", claims.get("AD_Language"));
 
 		chain.doFilter(req, res);
 	}
