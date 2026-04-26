@@ -3,8 +3,8 @@
 -- psql -U adempiere -d idempiere -f i18n/zh_TW.sql
 
 -- AD_Message 翻譯
-UPDATE AD_Message_Trl SET MsgText='個人', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanPrivate');
-UPDATE AD_Message_Trl SET MsgText='部屬', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSubordinates');
+UPDATE AD_Message_Trl SET MsgText='我的卡片', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanPrivate');
+UPDATE AD_Message_Trl SET MsgText='我的團隊', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSubordinates');
 UPDATE AD_Message_Trl SET MsgText='全部', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanAll');
 UPDATE AD_Message_Trl SET MsgText='所有類型', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanAllTypes');
 UPDATE AD_Message_Trl SET MsgText='搜尋...', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSearch');

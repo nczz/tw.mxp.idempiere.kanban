@@ -1,8 +1,8 @@
 /** All translatable message keys used in the SPA */
 const DEFAULT_MESSAGES: Record<string, string> = {
   // Toolbar
-  'KanbanPrivate': 'Private',
-  'KanbanSubordinates': 'Subordinates',
+  'KanbanPrivate': 'My Cards',
+  'KanbanSubordinates': 'My Team',
   'KanbanAll': 'All',
   'KanbanAllTypes': 'All Types',
   'KanbanSearch': 'Search...',

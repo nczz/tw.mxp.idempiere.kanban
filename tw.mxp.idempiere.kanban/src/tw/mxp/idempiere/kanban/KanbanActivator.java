@@ -79,6 +79,14 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureMessages();
 				recordMigration("1.6.0");
 			}
+			if (!isMigrationApplied("1.7.0")) {
+				// Update scope labels
+				DB.executeUpdate("UPDATE AD_Message SET MsgText='My Cards' WHERE Value='KanbanPrivate'", false, null);
+				DB.executeUpdate("UPDATE AD_Message SET MsgText='My Team' WHERE Value='KanbanSubordinates'", false, null);
+				DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='我的卡片',IsTranslated='Y' WHERE AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanPrivate') AND AD_Language='zh_TW'", false, null);
+				DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='我的團隊',IsTranslated='Y' WHERE AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSubordinates') AND AD_Language='zh_TW'", false, null);
+				recordMigration("1.7.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -225,7 +233,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 
 	private void ensureMessages() {
 		String[][] msgs = {
-			{"KanbanPrivate","Private","個人"},{"KanbanSubordinates","Subordinates","部屬"},
+			{"KanbanPrivate","My Cards","我的卡片"},{"KanbanSubordinates","My Team","我的團隊"},
 			{"KanbanAll","All","全部"},{"KanbanAllTypes","All Types","所有類型"},
 			{"KanbanSearch","Search...","搜尋..."},{"KanbanNew","+ New","+ 新增"},
 			{"KanbanOpen","📋 Open","📋 進行中"},{"KanbanClosed","📦 Closed","📦 已結案"},
