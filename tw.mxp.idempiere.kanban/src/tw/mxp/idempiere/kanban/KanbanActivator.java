@@ -97,6 +97,11 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanNoToken", "No authentication token", "無認證令牌"},
 			{"KanbanNoTokenHint", "Please open this form from the iDempiere menu.", "請從 iDempiere 選單開啟此表單。"},
 			{"KanbanMoveFailed", "Move failed", "移動失敗"},
+			{"KanbanComments", "Comments", "留言"},
+			{"KanbanNoComments", "No comments yet", "尚無留言"},
+			{"KanbanAddComment", "Add comment...", "新增留言..."},
+			{"KanbanPost", "Post", "發佈"},
+			{"KanbanPosting", "Posting...", "發佈中..."},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

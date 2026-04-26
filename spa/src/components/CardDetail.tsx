@@ -1,6 +1,6 @@
 import { t } from "../i18n";
 import { useState } from 'react';
-import { useCardDetail, useUpdateCard } from '../hooks/useCards';
+import { useCardDetail, useUpdateCard, useAddComment } from '../hooks/useCards';
 import { zoomRecord } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
 import { SearchSelect } from './SearchSelect';
@@ -16,8 +16,10 @@ interface Props {
 export function CardDetail({ cardId, init, onClose, onError }: Props) {
   const { data: card, isLoading } = useCardDetail(cardId);
   const updateCard = useUpdateCard();
+  const addComment = useAddComment();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Record<string, unknown>>({});
+  const [commentText, setCommentText] = useState('');
 
   if (isLoading) return <Modal onClose={onClose}><div className="p-8 text-center text-gray-400">Loading...</div></Modal>;
   if (!card) return <Modal onClose={onClose}><div className="p-8 text-center text-red-500">Card not found</div></Modal>;
@@ -253,6 +255,36 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Comments */}
+        <div className="mt-3">
+          <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanComments")}</div>
+          <div className="flex gap-2 mb-2">
+            <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && commentText.trim()) { addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); } }}
+              placeholder={t("KanbanAddComment")} className="flex-1 border rounded px-2 py-1 text-sm" />
+            <button onClick={() => { if (commentText.trim()) addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); }}
+              disabled={!commentText.trim() || addComment.isPending}
+              className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 disabled:opacity-50">
+              {addComment.isPending ? t("KanbanPosting") : t("KanbanPost")}
+            </button>
+          </div>
+          {card.comments && card.comments.length > 0 ? (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {card.comments.map((c) => (
+                <div key={c.id} className="bg-gray-50 rounded p-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-gray-700">👤 {c.userName}</span>
+                    <span className="text-xs text-gray-400">{new Date(c.date).toLocaleString()}</span>
+                  </div>
+                  <div className="text-sm text-gray-600 whitespace-pre-wrap">{c.text}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-gray-400">{t("KanbanNoComments")}</div>
           )}
         </div>
       </div>

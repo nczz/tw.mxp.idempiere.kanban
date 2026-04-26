@@ -53,6 +53,8 @@ public class CardsServlet extends HttpServlet {
 
 		if (pathInfo != null && pathInfo.endsWith("/move")) {
 			moveCard(req, resp, pathInfo);
+		} else if (pathInfo != null && pathInfo.endsWith("/comment")) {
+			addComment(req, resp, pathInfo);
 		} else if (pathInfo != null && pathInfo.equals("/reorder")) {
 			reorderCards(req, resp);
 		} else if (pathInfo == null || pathInfo.equals("/")) {
@@ -294,6 +296,53 @@ public class CardsServlet extends HttpServlet {
 	}
 
 	// ============================================================
+	// POST /cards/{id}/comment — add a comment (R_RequestUpdate)
+	// ============================================================
+	private void addComment(HttpServletRequest req, HttpServletResponse resp, String pathInfo) throws IOException {
+		int cardId;
+		try {
+			String idStr = pathInfo.replaceAll(".*/([0-9]+)/comment.*", "$1");
+			cardId = Integer.parseInt(idStr);
+		} catch (Exception e) {
+			resp.setStatus(400); resp.getWriter().print("{\"error\":\"Invalid ID\"}"); return;
+		}
+
+		int clientId = AuthContext.getClientId(req);
+		int userId = AuthContext.getUserId(req);
+
+		int cardClientId = DB.getSQLValueEx(null, "SELECT AD_Client_ID FROM R_Request WHERE R_Request_ID=?", cardId);
+		if (cardClientId != clientId) { resp.setStatus(403); resp.getWriter().print("{\"error\":\"Access denied\"}"); return; }
+
+		StringBuilder body = new StringBuilder();
+		req.getReader().lines().forEach(body::append);
+		JsonObject json = com.google.gson.JsonParser.parseString(body.toString()).getAsJsonObject();
+		String text = json.has("text") ? json.get("text").getAsString().trim() : "";
+		if (text.isEmpty()) { resp.setStatus(400); resp.getWriter().print("{\"error\":\"Comment text required\"}"); return; }
+
+		try {
+			Properties ctx = Env.getCtx();
+			Env.setContext(ctx, "#AD_Client_ID", clientId);
+			Env.setContext(ctx, "#AD_Org_ID", AuthContext.getOrgId(req));
+			Env.setContext(ctx, "#AD_User_ID", userId);
+
+			Trx.run(trxName -> {
+				int id = DB.getNextID(clientId, "R_RequestUpdate", trxName);
+				DB.executeUpdateEx(
+					"INSERT INTO R_RequestUpdate (R_RequestUpdate_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+					+ "Created, CreatedBy, Updated, UpdatedBy, R_Request_ID, Result, ConfidentialTypeEntry, R_RequestUpdate_UU) "
+					+ "VALUES (?, ?, ?, 'Y', now(), ?, now(), ?, ?, ?, 'A', generate_uuid())",
+					new Object[]{id, clientId, AuthContext.getOrgId(req), userId, userId, cardId, text},
+					trxName);
+			});
+		} catch (Exception e) { sendError(resp, 500, e); return; }
+
+		JsonObject result = new JsonObject();
+		result.addProperty("success", true);
+		resp.setStatus(201);
+		resp.getWriter().print(result.toString());
+	}
+
+	// ============================================================
 	// POST /cards/reorder — update card order within a column
 	// body: {"cardIds": [id1, id2, id3, ...]}
 	// ============================================================
@@ -468,6 +517,33 @@ public class CardsServlet extends HttpServlet {
 		} catch (Exception ignored) {}
 
 		card.add("moveHistory", history);
+
+		// Comments from R_RequestUpdate
+		JsonArray comments = new JsonArray();
+		String cSql = "SELECT ru.R_RequestUpdate_ID, ru.Result, ru.Created, ru.CreatedBy, "
+			+ "COALESCE(u.Name,'') AS UserName "
+			+ "FROM R_RequestUpdate ru "
+			+ "LEFT JOIN AD_User u ON ru.CreatedBy=u.AD_User_ID "
+			+ "WHERE ru.R_Request_ID=? AND ru.IsActive='Y' "
+			+ "ORDER BY ru.Created DESC";
+		try (PreparedStatement pstmt = DB.prepareStatement(cSql, null)) {
+			pstmt.setInt(1, cardId);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					String text = rs.getString("Result");
+					if (text == null || text.trim().isEmpty()) continue;
+					JsonObject c = new JsonObject();
+					c.addProperty("id", rs.getInt("R_RequestUpdate_ID"));
+					c.addProperty("text", text);
+					addTimestamp(c, "date", rs.getTimestamp("Created"));
+					c.addProperty("userId", rs.getInt("CreatedBy"));
+					c.addProperty("userName", rs.getString("UserName"));
+					comments.add(c);
+				}
+			}
+		} catch (Exception ignored) {}
+		card.add("comments", comments);
+
 		resp.getWriter().print(card.toString());
 	}
 

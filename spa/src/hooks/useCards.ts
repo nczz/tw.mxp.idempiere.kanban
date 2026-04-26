@@ -53,6 +53,7 @@ export interface CardDetail extends Card {
   assetName?: string;
   activityName?: string;
   moveHistory: { date: number; userName: string; fromStatus: string; toStatus: string; note: string }[];
+  comments: { id: number; text: string; date: number; userId: number; userName: string }[];
 }
 
 export function useCardDetail(cardId: number | null) {
@@ -94,6 +95,17 @@ export function useUpdateCard() {
       qc.invalidateQueries({ queryKey: ['cards'] });
       qc.invalidateQueries({ queryKey: ['card'] });
     },
+  });
+}
+
+export function useAddComment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ cardId, text }: { cardId: number; text: string }) =>
+      kanbanFetch<{ success: boolean }>(`/cards/${cardId}/comment`, {
+        method: 'POST', body: JSON.stringify({ text }),
+      }),
+    onSettled: () => { qc.invalidateQueries({ queryKey: ['card'] }); },
   });
 }
 

@@ -62,6 +62,11 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanNoToken': 'No authentication token',
   'KanbanNoTokenHint': 'Please open this form from the iDempiere menu.',
   'KanbanMoveFailed': 'Move failed',
+  'KanbanComments': 'Comments',
+  'KanbanNoComments': 'No comments yet',
+  'KanbanAddComment': 'Add comment...',
+  'KanbanPost': 'Post',
+  'KanbanPosting': 'Posting...',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };
