@@ -53,9 +53,12 @@ public class KanbanActivator extends Incremental2PackActivator {
 				recordMigration("1.1.0");
 			}
 			if (!isMigrationApplied("1.2.0")) {
+				// Fix label: Escalated → Blocked / 已升級 → 待決
 				DB.executeUpdate("UPDATE AD_Message SET MsgText='Blocked' WHERE Value='KanbanEscalated' AND MsgText='Escalated'", false, null);
 				DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='待決',IsTranslated='Y' "
 					+ "WHERE AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEscalated') AND AD_Language='zh_TW'", false, null);
+				// Set DocumentNo prefix REQ if not already set
+				DB.executeUpdate("UPDATE AD_Sequence SET Prefix='REQ' WHERE Name LIKE 'DocumentNo_R_Request%' AND (Prefix IS NULL OR Prefix='')", false, null);
 				recordMigration("1.2.0");
 			}
 		} catch (Exception e) {
