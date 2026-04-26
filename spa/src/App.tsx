@@ -21,7 +21,7 @@ function KanbanApp() {
   const [requestTypeId, setRequestTypeId] = useState<number | undefined>();
   const [search, setSearch] = useState('');
   const [showClosed, setShowClosed] = useState(false);
-  const [orgId, setOrgId] = useState<number | undefined>();
+  const [orgId, setOrgId] = useState<number | undefined | null>(null);
   const [view, setView] = useState<'kanban' | 'gantt' | 'metrics'>('kanban');
   const [groupBy, setGroupBy] = useState<'none' | 'project' | 'salesRep' | 'bpartner' | 'priority'>('none');
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
@@ -30,7 +30,7 @@ function KanbanApp() {
   const [toast, setToast] = useState<{ msg: string; type: 'error' | 'info' } | null>(null);
 
   const { data: init, isLoading: initLoading, error: initError } = useInit();
-  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCards(scope, requestTypeId, search || undefined, showClosed, orgId);
+  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCards(scope, requestTypeId, search || undefined, showClosed, orgId ?? undefined);
 
   const showToast = useCallback((msg: string, type: 'error' | 'info' = 'error') => {
     setToast({ msg, type });
@@ -76,8 +76,8 @@ function KanbanApp() {
     setRequestTypeId(init.activeRequestTypeId);
   }
 
-  // Set default org from login context
-  if (orgId === undefined && init.user.orgId > 0) {
+  // Set default org from login context (only once)
+  if (orgId === null && init.user.orgId > 0) {
     setOrgId(init.user.orgId);
   }
 
@@ -182,7 +182,7 @@ function KanbanApp() {
         <NewCardDialog
           init={init}
           requestTypeId={requestTypeId}
-          orgId={orgId}
+          orgId={orgId ?? undefined}
           onClose={() => setShowNewCard(false)}
           onError={showToast}
         />
