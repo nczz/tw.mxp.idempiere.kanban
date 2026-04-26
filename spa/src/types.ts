@@ -12,6 +12,7 @@ export interface Card {
   bpartnerName: string;
   requestTypeName: string;
   lastMoveAt?: number;
+  isEscalated?: boolean;
 }
 
 export interface Status {

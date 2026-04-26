@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { KanbanBoard } from './components/KanbanBoard';
 import { GanttView } from './components/GanttView';
+import { MetricsView } from './components/MetricsView';
 import { ScopeFilter } from './components/ScopeFilter';
 import { CardDetail } from './components/CardDetail';
 import { NewCardDialog } from './components/NewCardDialog';
@@ -20,7 +21,7 @@ function KanbanApp() {
   const [requestTypeId, setRequestTypeId] = useState<number | undefined>();
   const [search, setSearch] = useState('');
   const [showClosed, setShowClosed] = useState(false);
-  const [view, setView] = useState<'kanban' | 'gantt'>('kanban');
+  const [view, setView] = useState<'kanban' | 'gantt' | 'metrics'>('kanban');
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -97,6 +98,10 @@ function KanbanApp() {
             className={`text-xs px-2 py-1 ${view === 'gantt' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'}`}>
             {t('KanbanViewGantt')}
           </button>
+          <button onClick={() => setView('metrics')}
+            className={`text-xs px-2 py-1 ${view === 'metrics' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'}`}>
+            {t('KanbanViewMetrics')}
+          </button>
         </div>
         <input
           type="text" placeholder={t('KanbanSearch')} value={search}
@@ -117,6 +122,8 @@ function KanbanApp() {
       <div className="flex-1 overflow-hidden">
         {view === 'gantt' ? (
           <GanttView scope={scope} requestTypeId={requestTypeId} onCardClick={setSelectedCardId} />
+        ) : view === 'metrics' ? (
+          <MetricsView />
         ) : cardsLoading ? (
           <div className="flex items-center justify-center h-full text-gray-400">{t('KanbanLoadingCards')}</div>
         ) : (

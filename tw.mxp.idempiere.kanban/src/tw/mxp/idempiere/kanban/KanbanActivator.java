@@ -115,6 +115,12 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanWipCards", "cards", "張卡片"},
 			{"KanbanWipExceeded", "WIP limit reached for this column", "此欄已達 WIP 上限"},
 			{"KanbanPriorityColors", "Priority Colors", "優先級顏色"},
+			{"KanbanViewMetrics", "Metrics", "度量"},
+			{"KanbanCycleTime", "Cycle Time (avg days per status)", "週期時間（每狀態平均天數）"},
+			{"KanbanThroughput", "Throughput (completed per week)", "吞吐量（每週完成數）"},
+			{"KanbanNoData", "No data available", "無資料"},
+			{"KanbanBlock", "Block", "阻塞"},
+			{"KanbanUnblock", "Unblock", "解除阻塞"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

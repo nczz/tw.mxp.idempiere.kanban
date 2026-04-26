@@ -8,6 +8,7 @@ export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: bool
   return (
     <div className={`bg-white rounded-lg shadow p-3 mb-2 border transition-shadow ${
       isDragging ? 'shadow-lg ring-2 ring-blue-400 border-gray-200' :
+      card.isEscalated ? 'border-red-400 ring-1 ring-red-200 hover:shadow-md cursor-grab active:cursor-grabbing' :
       stale.level === 'danger' ? 'border-red-300 hover:shadow-md cursor-grab active:cursor-grabbing' :
       stale.level === 'warn' ? 'border-yellow-300 hover:shadow-md cursor-grab active:cursor-grabbing' :
       'border-gray-200 hover:shadow-md cursor-grab active:cursor-grabbing'
@@ -15,6 +16,9 @@ export function KanbanCard({ card, isDragging }: { card: Card; isDragging?: bool
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gray-400 font-mono">{card.documentNo}</span>
         <div className="flex items-center gap-1">
+          {card.isEscalated && (
+            <span className="text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">🚫</span>
+          )}
           {stale.level !== 'ok' && (
             <span className={`text-xs px-1 py-0.5 rounded ${
               stale.level === 'danger' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'

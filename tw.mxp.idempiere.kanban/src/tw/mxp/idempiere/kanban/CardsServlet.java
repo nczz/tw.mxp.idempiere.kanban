@@ -91,7 +91,7 @@ public class CardsServlet extends HttpServlet {
 
 		sql.append("SELECT r.R_Request_ID, r.DocumentNo, r.Summary, r.R_Status_ID, ");
 		sql.append("r.Priority, r.DueType, r.DateNextAction, r.SalesRep_ID, ");
-		sql.append("r.R_RequestType_ID, r.C_BPartner_ID, ");
+		sql.append("r.R_RequestType_ID, r.C_BPartner_ID, r.IsEscalated, ");
 		sql.append("s.Name AS StatusName, s.SeqNo AS StatusSeqNo, ");
 		sql.append("COALESCE(bp.Name, '') AS BPartnerName, ");
 		sql.append("COALESCE(rt.Name, '') AS RequestTypeName, ");
@@ -186,6 +186,7 @@ public class CardsServlet extends HttpServlet {
 					card.addProperty("salesRepName", rs.getString("SalesRepName"));
 					card.addProperty("bpartnerName", rs.getString("BPartnerName"));
 					card.addProperty("requestTypeName", rs.getString("RequestTypeName"));
+					card.addProperty("isEscalated", "Y".equals(rs.getString("IsEscalated")));
 					Timestamp lastMove = rs.getTimestamp("LastMoveAt");
 					if (lastMove != null) card.addProperty("lastMoveAt", lastMove.getTime());
 					cards.add(card);
@@ -604,6 +605,8 @@ public class CardsServlet extends HttpServlet {
 						request.setStartDate(new Timestamp(json.get("startDate").getAsLong()));
 					if (json.has("endTime") && !json.get("endTime").isJsonNull())
 						request.set_ValueOfColumn("EndTime", new Timestamp(json.get("endTime").getAsLong()));
+					if (json.has("isEscalated"))
+						request.setIsEscalated("Y".equals(json.get("isEscalated").getAsString()) || json.get("isEscalated").getAsBoolean());
 					if (json.has("bpartnerId")) request.setC_BPartner_ID(json.get("bpartnerId").getAsInt());
 					if (json.has("productId")) request.setM_Product_ID(json.get("productId").getAsInt());
 					if (json.has("orderId")) request.set_ValueOfColumn("C_Order_ID", json.get("orderId").getAsInt() > 0 ? json.get("orderId").getAsInt() : null);

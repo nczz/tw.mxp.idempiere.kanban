@@ -112,6 +112,10 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             {card.isEscalated && <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{t("KanbanEscalated")}</span>}
           </div>
           <div className="flex gap-2">
+            <button onClick={() => updateCard.mutate({ id: cardId, isEscalated: !card.isEscalated })}
+              className={`text-xs px-2 py-1 rounded ${card.isEscalated ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-red-100'}`}>
+              🚫 {card.isEscalated ? t('KanbanUnblock') : t('KanbanBlock')}
+            </button>
             {!editing && <button onClick={startEdit} className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">{t("KanbanEdit")}</button>}
             {editing && <button onClick={saveEdit} disabled={updateCard.isPending} className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50">{updateCard.isPending ? t('KanbanSaving') : t('KanbanSave')}</button>}
             {editing && <button onClick={() => setEditing(false)} className="text-xs bg-gray-300 text-gray-700 px-3 py-1 rounded">{t("KanbanCancel")}</button>}

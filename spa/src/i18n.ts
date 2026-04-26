@@ -80,6 +80,12 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanWipCards': 'cards',
   'KanbanWipExceeded': 'WIP limit reached for this column',
   'KanbanPriorityColors': 'Priority Colors',
+  'KanbanViewMetrics': 'Metrics',
+  'KanbanCycleTime': 'Cycle Time (avg days per status)',
+  'KanbanThroughput': 'Throughput (completed per week)',
+  'KanbanNoData': 'No data available',
+  'KanbanBlock': 'Block',
+  'KanbanUnblock': 'Unblock',
 };
 
 let messages: Record<string, string> = { ...DEFAULT_MESSAGES };
