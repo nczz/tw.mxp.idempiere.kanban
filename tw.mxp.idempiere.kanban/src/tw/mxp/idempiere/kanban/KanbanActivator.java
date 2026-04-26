@@ -69,13 +69,13 @@ public class KanbanActivator extends Incremental2PackActivator {
 	private boolean isMigrationApplied(String version) {
 		return new Query(Env.getCtx(), X_AD_Package_Imp.Table_Name,
 			"Name=? AND PK_Version=? AND PK_Status=?", null)
-			.setParameters(getName(), version, "Completed successfully")
+			.setParameters(getName() + "-migration", version, "Completed successfully")
 			.match();
 	}
 
 	private void recordMigration(String version) {
 		X_AD_Package_Imp imp = new X_AD_Package_Imp(Env.getCtx(), 0, null);
-		imp.setName(getName());
+		imp.setName(getName() + "-migration");
 		imp.setPK_Version(version);
 		imp.setPK_Status("Completed successfully");
 		imp.setProcessed(true);
