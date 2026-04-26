@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { kanbanFetch } from '../api';
-import { priorityColor } from '../utils/priority';
+import { priorityHex } from '../utils/priority';
 import { t } from '../i18n';
 
 interface GanttTask {
@@ -90,9 +90,9 @@ export function GanttView({ scope, requestTypeId, onCardClick }: {
               <div className="relative flex-1" style={{ height: 24 }}>
                 <div
                   className={`absolute top-1 h-5 rounded text-[10px] text-white flex items-center px-1 truncate cursor-pointer hover:opacity-80 ${
-                    task.isClosed ? 'bg-gray-400' : priorityColor(task.priority)
+                    task.isClosed ? 'bg-gray-400' : ''
                   }`}
-                  style={{ left: barLeft, width: barWidth, minWidth: 20 }}
+                  style={{ left: barLeft, width: barWidth, minWidth: 20, backgroundColor: task.isClosed ? undefined : priorityHex(task.priority) }}
                   onClick={() => onCardClick(task.id)}
                   title={`${task.salesRepName} — ${task.statusName}`}
                 >
