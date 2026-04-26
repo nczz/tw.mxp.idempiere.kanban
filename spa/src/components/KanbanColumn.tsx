@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { KanbanCard } from './KanbanCard';
 import type { Card, Status } from '../types';
@@ -23,7 +24,7 @@ export function KanbanColumn({ status, cards, onCardClick }: {
           <DraggableCard key={card.id} card={card} onClick={() => onCardClick(card.id)} />
         ))}
         {cards.length === 0 && (
-          <div className="text-center text-xs text-gray-400 py-8">No cards</div>
+          <div className="text-center text-xs text-gray-400 py-8">{t("KanbanNoCards")}</div>
         )}
       </div>
     </div>

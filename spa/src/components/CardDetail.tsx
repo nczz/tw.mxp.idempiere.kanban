@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from 'react';
 import { useCardDetail, useUpdateCard } from '../hooks/useCards';
 import { zoomRecord } from '../api';
@@ -99,12 +100,12 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 {priorityLabel(card.priority)}
               </span>
             )}
-            {card.isEscalated && <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">Escalated</span>}
+            {card.isEscalated && <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{t("KanbanEscalated")}</span>}
           </div>
           <div className="flex gap-2">
-            {!editing && <button onClick={startEdit} className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>}
-            {editing && <button onClick={saveEdit} disabled={updateCard.isPending} className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50">{updateCard.isPending ? 'Saving...' : 'Save'}</button>}
-            {editing && <button onClick={() => setEditing(false)} className="text-xs bg-gray-300 text-gray-700 px-3 py-1 rounded">Cancel</button>}
+            {!editing && <button onClick={startEdit} className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">{t("KanbanEdit")}</button>}
+            {editing && <button onClick={saveEdit} disabled={updateCard.isPending} className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50">{updateCard.isPending ? t('KanbanSaving') : t('KanbanSave')}</button>}
+            {editing && <button onClick={() => setEditing(false)} className="text-xs bg-gray-300 text-gray-700 px-3 py-1 rounded">{t("KanbanCancel")}</button>}
           </div>
         </div>
 
@@ -112,7 +113,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
           /* ===== EDIT MODE ===== */
           <div className="space-y-3 mb-4">
             <div>
-              <label className="text-xs text-gray-500">Summary</label>
+              <label className="text-xs text-gray-500">{t("KanbanSummary")}</label>
               <input value={form.summary as string} onChange={set('summary')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
             </div>
             <div>
@@ -127,7 +128,7 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">Status</label>
+                <label className="text-xs text-gray-500">{t("KanbanStatus")}</label>
                 <select value={form.statusId as number} onChange={set('statusId')} className="w-full border rounded px-2 py-1 text-sm mt-0.5">
                   {availableStatuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
@@ -158,38 +159,38 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="text-xs text-gray-500">Date Next Action</label>
+                <label className="text-xs text-gray-500">{t("KanbanDateNextAction")}</label>
                 <input type="datetime-local" value={form.dateNextAction as string} onChange={set('dateNextAction')} className="w-full border rounded px-2 py-1 text-sm mt-0.5" />
               </div>
             </div>
             {/* ERP Links (edit) */}
             <div className="text-xs font-semibold text-gray-500 mt-3 mb-1">ERP Links</div>
             <div className="grid grid-cols-2 gap-3">
-              <SearchSelect table="C_BPartner" label="Business Partner"
+              <SearchSelect table="C_BPartner" label={t("KanbanBusinessPartner")}
                 value={form.bpartnerId as number | undefined} valueName={form.bpartnerName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, bpartnerId: id, bpartnerName: name }))} />
-              <SearchSelect table="M_Product" label="Product"
+              <SearchSelect table="M_Product" label={t("KanbanProduct")}
                 value={form.productId as number | undefined} valueName={form.productName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, productId: id, productName: name }))} />
-              <SearchSelect table="C_Order" label="Order"
+              <SearchSelect table="C_Order" label={t("KanbanOrder")}
                 value={form.orderId as number | undefined} valueName={form.orderName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, orderId: id, orderName: name }))} />
-              <SearchSelect table="C_Invoice" label="Invoice"
+              <SearchSelect table="C_Invoice" label={t("KanbanInvoice")}
                 value={form.invoiceId as number | undefined} valueName={form.invoiceName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, invoiceId: id, invoiceName: name }))} />
-              <SearchSelect table="C_Payment" label="Payment"
+              <SearchSelect table="C_Payment" label={t("KanbanPayment")}
                 value={form.paymentId as number | undefined} valueName={form.paymentName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, paymentId: id, paymentName: name }))} />
-              <SearchSelect table="C_Project" label="Project"
+              <SearchSelect table="C_Project" label={t("KanbanProject")}
                 value={form.projectId as number | undefined} valueName={form.projectName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, projectId: id, projectName: name }))} />
-              <SearchSelect table="C_Campaign" label="Campaign"
+              <SearchSelect table="C_Campaign" label={t("KanbanCampaign")}
                 value={form.campaignId as number | undefined} valueName={form.campaignName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, campaignId: id, campaignName: name }))} />
-              <SearchSelect table="A_Asset" label="Asset"
+              <SearchSelect table="A_Asset" label={t("KanbanAsset")}
                 value={form.assetId as number | undefined} valueName={form.assetName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, assetId: id, assetName: name }))} />
-              <SearchSelect table="C_Activity" label="Activity"
+              <SearchSelect table="C_Activity" label={t("KanbanActivity")}
                 value={form.activityId as number | undefined} valueName={form.activityName as string}
                 onChange={(id, name) => setForm((f) => ({ ...f, activityId: id, activityName: name }))} />
             </div>
@@ -203,16 +204,16 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
               {card.result || <span className="text-gray-300 italic">No notes</span>}
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3">
-              <Field label="Status" value={card.statusName} />
-              <Field label="Request Type" value={card.requestTypeName} />
-              <Field label="Priority" value={priorityLabel(card.priority)} />
-              <Field label="Sales Rep" value={card.salesRepName} />
-              <Field label="Requester" value={card.requesterName} />
-              <Field label="Created By" value={card.creatorName} />
-              <Field label="Created" value={fmtDate(card.created)} />
-              <Field label="Next Action" value={fmtDate(card.dateNextAction)} />
-              <Field label="Start Date" value={fmtDate(card.startDate)} />
-              {card.closeDate && <Field label="Close Date" value={fmtDate(card.closeDate)} />}
+              <Field label={t("KanbanStatus")} value={card.statusName} />
+              <Field label={t("KanbanRequestType")} value={card.requestTypeName} />
+              <Field label={t("KanbanPriority")} value={priorityLabel(card.priority)} />
+              <Field label={t("KanbanSalesRep")} value={card.salesRepName} />
+              <Field label={t("KanbanRequester")} value={card.requesterName} />
+              <Field label={t("KanbanCreatedBy")} value={card.creatorName} />
+              <Field label={t("KanbanCreated")} value={fmtDate(card.created)} />
+              <Field label={t("KanbanNextAction")} value={fmtDate(card.dateNextAction)} />
+              <Field label={t("KanbanStartDate")} value={fmtDate(card.startDate)} />
+              {card.closeDate && <Field label={t("KanbanCloseDate")} value={fmtDate(card.closeDate)} />}
             </div>
           </>
         )}

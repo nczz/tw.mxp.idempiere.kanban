@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from 'react';
 import {
   DndContext, DragOverlay, closestCorners, PointerSensor,
@@ -63,7 +64,7 @@ export function KanbanBoard({ statuses, cards, onError, onCardClick }: Props) {
         ))}
         {statuses.length === 0 && (
           <div className="flex items-center justify-center w-full h-full text-gray-400">
-            No statuses configured.
+            {t("KanbanNoStatuses")}
           </div>
         )}
       </div>

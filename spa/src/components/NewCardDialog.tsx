@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from 'react';
 import { useCreateCard } from '../hooks/useCards';
 import { SearchSelect } from './SearchSelect';
@@ -94,18 +95,18 @@ export function NewCardDialog({ init, onClose, onError }: Props) {
           {/* ERP Links */}
           <div className="text-xs font-semibold text-gray-500 mt-1">ERP Links</div>
           <div className="grid grid-cols-2 gap-3">
-            <SearchSelect table="C_BPartner" label="Business Partner" value={erp.bpartnerId} onChange={setFk('bpartnerId')} />
-            <SearchSelect table="M_Product" label="Product" value={erp.productId} onChange={setFk('productId')} />
-            <SearchSelect table="C_Project" label="Project" value={erp.projectId} onChange={setFk('projectId')} />
-            <SearchSelect table="C_Campaign" label="Campaign" value={erp.campaignId} onChange={setFk('campaignId')} />
-            <SearchSelect table="C_Activity" label="Activity" value={erp.activityId} onChange={setFk('activityId')} />
+            <SearchSelect table="C_BPartner" label={t("KanbanBusinessPartner")} value={erp.bpartnerId} onChange={setFk('bpartnerId')} />
+            <SearchSelect table="M_Product" label={t("KanbanProduct")} value={erp.productId} onChange={setFk('productId')} />
+            <SearchSelect table="C_Project" label={t("KanbanProject")} value={erp.projectId} onChange={setFk('projectId')} />
+            <SearchSelect table="C_Campaign" label={t("KanbanCampaign")} value={erp.campaignId} onChange={setFk('campaignId')} />
+            <SearchSelect table="C_Activity" label={t("KanbanActivity")} value={erp.activityId} onChange={setFk('activityId')} />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="text-sm px-3 py-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">Cancel</button>
+            <button type="button" onClick={onClose} className="text-sm px-3 py-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">{t("KanbanCancel")}</button>
             <button type="submit" disabled={!summary.trim() || createCard.isPending}
               className="text-sm px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50">
-              {createCard.isPending ? 'Creating...' : 'Create'}
+              {createCard.isPending ? t('KanbanCreating') : t('KanbanCreate')}
             </button>
           </div>
         </form>
