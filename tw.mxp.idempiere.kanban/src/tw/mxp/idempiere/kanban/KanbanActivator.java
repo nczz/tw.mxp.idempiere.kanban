@@ -100,6 +100,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureReminderScheduler();
 				recordMigration("2.0.0");
 			}
+			if (!isMigrationApplied("2.0.1")) {
+				ensureReminderScheduler(); // retry for environments where 2.0.0 partially failed
+				recordMigration("2.0.1");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -256,15 +260,23 @@ public class KanbanActivator extends Incremental2PackActivator {
 				+ "'KanbanReminder', 'tw.mxp.idempiere.kanban.KanbanReminderProcess', 'N', 'N', '3', 'U', ?)",
 				new Object[]{procId, processUU}, null);
 
-			// AD_Scheduler (daily at 08:00)
-			int schedId = DB.getNextID(0, "AD_Scheduler", null);
+			// AD_Schedule (daily frequency)
+			int scheduleId = DB.getNextID(0, "AD_Schedule", null);
+			DB.executeUpdateEx("INSERT INTO AD_Schedule (AD_Schedule_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, FrequencyType, Frequency, "
+				+ "ScheduleType, AD_Schedule_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily', 'D', 1, 'F', generate_uuid())",
+				new Object[]{scheduleId}, null);
+
+			// AD_Scheduler
+			int schedulerId = DB.getNextID(0, "AD_Scheduler", null);
 			DB.executeUpdateEx("INSERT INTO AD_Scheduler (AD_Scheduler_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Description, "
-				+ "AD_Process_ID, FrequencyType, Frequency, ScheduleType, "
-				+ "RunOnlyOnIP, Supervisor_ID, KeepLogDays, AD_Scheduler_UU) "
-				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily Reminder', 'Scans due/overdue cards and sends notifications', "
-				+ "?, 'D', 1, 'F', NULL, 0, 7, generate_uuid())",
-				new Object[]{schedId, procId}, null);
+				+ "AD_Process_ID, Supervisor_ID, KeepLogDays, ScheduleType, AD_Schedule_ID, AD_Scheduler_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily Reminder', "
+				+ "'Scans due/overdue cards and sends notifications', "
+				+ "?, 0, 7, 'F', ?, generate_uuid())",
+				new Object[]{schedulerId, procId, scheduleId}, null);
 		}
 
 		// AD_SysConfig: KANBAN_REMINDER_ENABLED (default Y)
