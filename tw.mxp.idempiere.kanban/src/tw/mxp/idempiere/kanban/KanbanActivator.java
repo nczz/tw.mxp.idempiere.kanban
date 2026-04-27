@@ -91,6 +91,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureMessages();
 				recordMigration("1.8.0");
 			}
+			if (!isMigrationApplied("1.9.0")) {
+				ensureMessages();
+				recordMigration("1.9.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -315,6 +319,9 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanWatch","Watch","關注"},
 			{"KanbanUnwatch","Unwatch","取消關注"},
 			{"KanbanWatchers","Watchers","關注者"},
+			{"KanbanNotifyCard","Card","卡片"},
+			{"KanbanNotifyActor","By","操作者"},
+			{"KanbanNotifyTime","Time","時間"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

@@ -131,3 +131,6 @@ UPDATE AD_Message_Trl SET MsgText='已指派給你', IsTranslated='Y' WHERE AD_L
 UPDATE AD_Message_Trl SET MsgText='關注', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanWatch');
 UPDATE AD_Message_Trl SET MsgText='取消關注', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanUnwatch');
 UPDATE AD_Message_Trl SET MsgText='關注者', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanWatchers');
+UPDATE AD_Message_Trl SET MsgText='卡片', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyCard');
+UPDATE AD_Message_Trl SET MsgText='操作者', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyActor');
+UPDATE AD_Message_Trl SET MsgText='時間', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyTime');

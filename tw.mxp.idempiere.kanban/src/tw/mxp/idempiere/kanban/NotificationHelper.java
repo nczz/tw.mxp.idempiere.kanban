@@ -29,8 +29,14 @@ public class NotificationHelper {
 	 * @param detail additional detail text (e.g. status change, comment excerpt)
 	 */
 	public static void notifyWatchers(int clientId, int cardId, int actorUserId, String msgKey, String detail) {
+		// Gather card info
 		String docNo = DB.getSQLValueStringEx(null, "SELECT DocumentNo FROM R_Request WHERE R_Request_ID=?", cardId);
+		String summary = DB.getSQLValueStringEx(null, "SELECT Summary FROM R_Request WHERE R_Request_ID=?", cardId);
+		String actorName = DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId);
 		if (docNo == null) docNo = String.valueOf(cardId);
+		if (summary == null) summary = "";
+		if (actorName == null) actorName = "";
+		String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date());
 
 		List<int[]> watchers = getWatchers(cardId, actorUserId);
 		for (int[] w : watchers) {
@@ -40,10 +46,22 @@ public class NotificationHelper {
 					"SELECT AD_Language FROM AD_User WHERE AD_User_ID=?", userId);
 				if (lang == null || lang.isEmpty()) lang = "en_US";
 
-				// Get translated template
-				String template = getTranslatedMessage(msgKey, lang);
-				String subject = docNo + " — " + template;
-				String body = docNo + " — " + template + (detail != null && !detail.isEmpty() ? "\n\n" + detail : "");
+				String action = getTranslatedMessage(msgKey, lang);
+				String cardLabel = getTranslatedMessage("KanbanNotifyCard", lang);
+				String actorLabel = getTranslatedMessage("KanbanNotifyActor", lang);
+				String timeLabel = getTranslatedMessage("KanbanNotifyTime", lang);
+
+				// Subject: [REQ001] 摘要 — Alice 變更了狀態
+				String subject = "[" + docNo + "] " + summary + " — " + actorName + " " + action;
+
+				// Body
+				StringBuilder body = new StringBuilder();
+				body.append(actorName).append(" ").append(action);
+				if (detail != null && !detail.isEmpty()) body.append("\n").append(detail);
+				body.append("\n\n");
+				body.append(cardLabel).append(": ").append(docNo).append(" — ").append(summary).append("\n");
+				body.append(actorLabel).append(": ").append(actorName).append("\n");
+				body.append(timeLabel).append(": ").append(timestamp);
 
 				// AD_Note
 				MNote note = new MNote(Env.getCtx(), 0, null);
@@ -51,13 +69,13 @@ public class NotificationHelper {
 				note.setClientOrg(clientId, 0);
 				note.setAD_Table_ID(R_REQUEST_TABLE_ID);
 				note.setRecord_ID(cardId);
-				note.setTextMsg(body);
+				note.setTextMsg(body.toString());
 				note.setDescription(subject);
 				note.setReference(docNo);
 				note.saveEx();
 
 				// Email
-				sendEmail(clientId, userId, subject, body);
+				sendEmail(clientId, userId, subject, body.toString());
 			} catch (Exception e) {
 				log.log(Level.FINE, "Notify failed for user " + userId, e);
 			}
