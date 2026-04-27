@@ -104,6 +104,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureReminderScheduler();
 				recordMigration("2.0.1");
 			}
+			if (!isMigrationApplied("2.0.2")) {
+				ensureReminderScheduler();
+				recordMigration("2.0.2");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
