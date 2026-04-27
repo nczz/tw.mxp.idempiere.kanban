@@ -32,7 +32,7 @@ public class NotificationHelper {
 		// Gather card info
 		String docNo = DB.getSQLValueStringEx(null, "SELECT DocumentNo FROM R_Request WHERE R_Request_ID=?", cardId);
 		String summary = DB.getSQLValueStringEx(null, "SELECT Summary FROM R_Request WHERE R_Request_ID=?", cardId);
-		String actorName = actorUserId > 0 ? DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId) : "Kanban Reminder";
+		String actorName = actorUserId > 0 ? DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId) : "";
 		if (docNo == null) docNo = String.valueOf(cardId);
 		if (summary == null) summary = "";
 		if (actorName == null) actorName = "";
@@ -127,7 +127,7 @@ public class NotificationHelper {
 	static String buildHtmlBody(int cardId, int actorUserId, String msgKey, String detail, String lang) {
 		String docNo = DB.getSQLValueStringEx(null, "SELECT DocumentNo FROM R_Request WHERE R_Request_ID=?", cardId);
 		String summary = DB.getSQLValueStringEx(null, "SELECT Summary FROM R_Request WHERE R_Request_ID=?", cardId);
-		String actorName = actorUserId > 0 ? DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId) : "Kanban Reminder";
+		String actorName = actorUserId > 0 ? DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId) : "";
 		String priority = DB.getSQLValueStringEx(null,
 			"SELECT COALESCE(t.Name, rl.Name) FROM AD_Ref_List rl "
 			+ "LEFT JOIN AD_Ref_List_Trl t ON rl.AD_Ref_List_ID=t.AD_Ref_List_ID AND t.AD_Language=? AND t.IsTranslated='Y' "

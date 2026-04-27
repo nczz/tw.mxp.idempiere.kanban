@@ -76,7 +76,7 @@ public class KanbanReminderProcess extends SvrProcess {
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
 					int cardId = rs.getInt(1);
-					NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyOverdue", "1 day");
+					NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyOverdue", "1");
 					overdue++;
 				}
 			}
@@ -94,7 +94,7 @@ public class KanbanReminderProcess extends SvrProcess {
 					int cardId = rs.getInt(1), supervisorId = rs.getInt(3);
 					if (supervisorId > 0) {
 						NotificationHelper.addWatcher(clientId, cardId, supervisorId);
-						NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyEscalateSupervisor", "3 days");
+						NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyEscalateSupervisor", "3");
 					}
 					escalated++;
 				}
@@ -112,7 +112,7 @@ public class KanbanReminderProcess extends SvrProcess {
 				while (rs.next()) {
 					int cardId = rs.getInt(1);
 					DB.executeUpdate("UPDATE R_Request SET IsEscalated='Y', Updated=now() WHERE R_Request_ID=" + cardId, false, null);
-					NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyEscalateBlocked", "7+ days");
+					NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyEscalateBlocked", "7+");
 					blocked++;
 				}
 			}
