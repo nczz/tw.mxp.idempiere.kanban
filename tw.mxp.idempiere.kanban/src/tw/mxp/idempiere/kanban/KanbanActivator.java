@@ -265,14 +265,16 @@ public class KanbanActivator extends Incremental2PackActivator {
 
 		// AD_Schedule + AD_Scheduler
 		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Scheduler WHERE AD_Process_ID=?", procId) == 0) {
-			int scheduleId = DB.getNextID(0, "AD_Schedule", null);
+			int scheduleId = DB.getSQLValueEx(null, "SELECT MAX(AD_Schedule_ID)+1 FROM AD_Schedule");
+			if (scheduleId <= 0) scheduleId = 1000000;
 			DB.executeUpdateEx("INSERT INTO AD_Schedule (AD_Schedule_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, FrequencyType, Frequency, "
 				+ "ScheduleType, IsIgnoreProcessingTime, IsSystemSchedule, AD_Schedule_UU) "
 				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily', 'D', 1, 'F', 'N', 'N', generate_uuid())",
 				new Object[]{scheduleId}, null);
 
-			int schedulerId = DB.getNextID(0, "AD_Scheduler", null);
+			int schedulerId = DB.getSQLValueEx(null, "SELECT MAX(AD_Scheduler_ID)+1 FROM AD_Scheduler");
+			if (schedulerId <= 0) schedulerId = 1000000;
 			DB.executeUpdateEx("INSERT INTO AD_Scheduler (AD_Scheduler_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Description, "
 				+ "AD_Process_ID, Supervisor_ID, KeepLogDays, ScheduleType, AD_Schedule_ID, AD_Scheduler_UU) "
