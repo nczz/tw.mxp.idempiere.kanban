@@ -107,6 +107,10 @@ const DEFAULT_MESSAGES: Record<string, string> = {
   'KanbanDefault': 'Default',
   'KanbanFinalCloseWarning': 'This will permanently close the card. It cannot be reopened. Continue?',
   'KanbanCardClosed': 'Card moved to closed status',
+  // Notifications
+  'KanbanWatch': 'Watch',
+  'KanbanUnwatch': 'Unwatch',
+  'KanbanWatchers': 'Watchers',
   // Swimlanes
   'KanbanGroupBy': 'Group',
   'KanbanGroupNone': 'None',

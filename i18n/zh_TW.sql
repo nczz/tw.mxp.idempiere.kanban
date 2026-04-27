@@ -122,3 +122,12 @@ UPDATE AD_Message_Trl SET MsgText='建立獨立狀態', IsTranslated='Y' WHERE A
 UPDATE AD_Message_Trl SET MsgText='活動歷程', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanActivityLog');
 UPDATE AD_Message_Trl SET MsgText='無法刪除：有卡片使用此狀態', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanCannotDelete');
 UPDATE AD_Message_Trl SET MsgText='天', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanDaysAgo');
+
+-- Notifications
+UPDATE AD_Message_Trl SET MsgText='狀態已變更', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyMove');
+UPDATE AD_Message_Trl SET MsgText='新留言', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyComment');
+UPDATE AD_Message_Trl SET MsgText='你被提到了', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyMention');
+UPDATE AD_Message_Trl SET MsgText='已指派給你', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyAssign');
+UPDATE AD_Message_Trl SET MsgText='關注', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanWatch');
+UPDATE AD_Message_Trl SET MsgText='取消關注', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanUnwatch');
+UPDATE AD_Message_Trl SET MsgText='關注者', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanWatchers');

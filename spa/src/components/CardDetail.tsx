@@ -1,7 +1,8 @@
 import { t } from "../i18n";
 import { useState, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCardDetail, useUpdateCard, useAddComment, useUploadAttachment, useDeleteAttachment } from '../hooks/useCards';
-import { zoomRecord, downloadFile } from '../api';
+import { zoomRecord, downloadFile, kanbanFetch } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
 import { SearchSelect } from './SearchSelect';
 import type { InitData } from '../types';
@@ -15,6 +16,7 @@ interface Props {
 
 export function CardDetail({ cardId, init, onClose, onError }: Props) {
   const { data: card, isLoading } = useCardDetail(cardId);
+  const queryClient = useQueryClient();
   const updateCard = useUpdateCard();
   const addComment = useAddComment();
   const uploadAtt = useUploadAttachment();
@@ -112,6 +114,14 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             {card.isEscalated && <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{t("KanbanEscalated")}</span>}
           </div>
           <div className="flex gap-2">
+            <button onClick={async () => {
+              await kanbanFetch(`/cards/${cardId}/${card.isWatching ? '' : ''}watch`, {
+                method: card.isWatching ? 'DELETE' : 'POST',
+              });
+              queryClient.invalidateQueries({ queryKey: ['card', cardId] });
+            }} className={`text-xs px-2 py-1 rounded ${card.isWatching ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100'}`}>
+              👁 {card.isWatching ? t('KanbanUnwatch') : t('KanbanWatch')}
+            </button>
             <button onClick={() => updateCard.mutate({ id: cardId, isEscalated: !card.isEscalated })}
               className={`text-xs px-2 py-1 rounded ${card.isEscalated ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-red-100'}`}>
               🚫 {card.isEscalated ? t('KanbanUnblock') : t('KanbanBlock')}
@@ -324,6 +334,11 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
             <div className="text-xs text-gray-400">{t("KanbanNoComments")}</div>
           )}
         </div>
+
+        {/* Watchers */}
+        {card.watchers && (
+          <div className="text-xs text-gray-400 mb-2">👁 {t('KanbanWatchers')}: {card.watchers}</div>
+        )}
 
         {/* Activity Timeline */}
         <div>

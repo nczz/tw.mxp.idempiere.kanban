@@ -57,6 +57,8 @@ export interface CardDetail extends Card {
   comments: { id: number; text: string; date: number; userId: number; userName: string }[];
   attachments?: { name: string; size: number }[];
   activity?: { type: string; date: number; userName: string; detail: string }[];
+  isWatching?: boolean;
+  watchers?: string;
 }
 
 export function useCardDetail(cardId: number | null) {

@@ -87,6 +87,10 @@ public class KanbanActivator extends Incremental2PackActivator {
 				DB.executeUpdate("UPDATE AD_Message_Trl SET MsgText='我的團隊',IsTranslated='Y' WHERE AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanSubordinates') AND AD_Language='zh_TW'", false, null);
 				recordMigration("1.7.0");
 			}
+			if (!isMigrationApplied("1.8.0")) {
+				ensureMessages();
+				recordMigration("1.8.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -303,6 +307,14 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanActivityLog","Activity","活動歷程"},
 			{"KanbanCannotDelete","Cannot delete: cards use this status","無法刪除：有卡片使用此狀態"},
 			{"KanbanDaysAgo","d","天"},
+			// Notifications
+			{"KanbanNotifyMove","Status changed","狀態已變更"},
+			{"KanbanNotifyComment","New comment","新留言"},
+			{"KanbanNotifyMention","You were mentioned","你被提到了"},
+			{"KanbanNotifyAssign","Assigned to you","已指派給你"},
+			{"KanbanWatch","Watch","關注"},
+			{"KanbanUnwatch","Unwatch","取消關注"},
+			{"KanbanWatchers","Watchers","關注者"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;

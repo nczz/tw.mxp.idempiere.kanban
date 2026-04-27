@@ -57,6 +57,8 @@ public class CardsServlet extends HttpServlet {
 			moveCard(req, resp, pathInfo);
 		} else if (pathInfo != null && pathInfo.endsWith("/comment")) {
 			addComment(req, resp, pathInfo);
+		} else if (pathInfo != null && pathInfo.endsWith("/watch")) {
+			watchCard(req, resp, pathInfo);
 		} else if (pathInfo != null && pathInfo.equals("/reorder")) {
 			reorderCards(req, resp);
 		} else if (pathInfo == null || pathInfo.equals("/")) {
@@ -71,6 +73,17 @@ public class CardsServlet extends HttpServlet {
 	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("application/json; charset=UTF-8");
 		updateCard(req, resp);
+	}
+
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		resp.setContentType("application/json; charset=UTF-8");
+		String pathInfo = req.getPathInfo();
+		if (pathInfo != null && pathInfo.endsWith("/watch")) {
+			unwatchCard(req, resp, pathInfo);
+		} else {
+			resp.setStatus(404);
+		}
 	}
 
 	/**
@@ -307,9 +320,13 @@ public class CardsServlet extends HttpServlet {
 			eventData.put("R_Request_ID", cardId);
 			org.osgi.service.event.Event osgiEvent = EventManager.newEvent("kanban/refresh", eventData);
 			EventManager.getInstance().sendEvent(osgiEvent);
-		} catch (Exception ignored) {
-			// Push failure should not fail the move response
-		}
+		} catch (Exception ignored) {}
+
+		// Notify watchers
+		String fromName = DB.getSQLValueStringEx(null, "SELECT Name FROM R_Status WHERE R_Status_ID=?", oldStatusId[0]);
+		String toName = DB.getSQLValueStringEx(null, "SELECT Name FROM R_Status WHERE R_Status_ID=?", targetStatusId);
+		NotificationHelper.notifyWatchers(clientId, cardId, userId, "KanbanNotifyMove",
+			(fromName != null ? fromName : "") + " → " + (toName != null ? toName : ""));
 
 		resp.getWriter().print(result.toString());
 	}
@@ -360,6 +377,11 @@ public class CardsServlet extends HttpServlet {
 		resp.setStatus(201);
 		resp.getWriter().print(result.toString());
 		sendRefreshEvent(clientId, cardId);
+
+		// Notify watchers + process @mentions
+		String excerpt = text.length() > 200 ? text.substring(0, 200) + "..." : text;
+		NotificationHelper.notifyWatchers(clientId, cardId, userId, "KanbanNotifyComment", excerpt);
+		NotificationHelper.processMentions(clientId, cardId, userId, text);
 	}
 
 	// ============================================================
@@ -400,6 +422,23 @@ public class CardsServlet extends HttpServlet {
 		}
 
 		resp.getWriter().print("{\"success\":true}");
+	}
+
+	private void watchCard(HttpServletRequest req, HttpServletResponse resp, String pathInfo) throws IOException {
+		int cardId = parsePathId(pathInfo.replace("/watch", ""));
+		if (cardId <= 0) { resp.setStatus(400); return; }
+		int clientId = AuthContext.getClientId(req);
+		int userId = AuthContext.getUserId(req);
+		NotificationHelper.addWatcher(clientId, cardId, userId);
+		resp.getWriter().print("{\"success\":true,\"watching\":true}");
+	}
+
+	private void unwatchCard(HttpServletRequest req, HttpServletResponse resp, String pathInfo) throws IOException {
+		int cardId = parsePathId(pathInfo.replace("/watch", ""));
+		if (cardId <= 0) { resp.setStatus(400); return; }
+		int userId = AuthContext.getUserId(req);
+		NotificationHelper.removeWatcher(cardId, userId);
+		resp.getWriter().print("{\"success\":true,\"watching\":false}");
 	}
 
 	private void sendRefreshEvent(int clientId, int cardId) {
@@ -642,6 +681,11 @@ public class CardsServlet extends HttpServlet {
 		sorted.forEach(sortedActivity::add);
 		card.add("activity", sortedActivity);
 
+		// Watch status
+		int reqUserId = AuthContext.getUserId(req);
+		card.addProperty("isWatching", NotificationHelper.isWatching(cardId, reqUserId));
+		card.addProperty("watchers", NotificationHelper.getWatcherNames(cardId));
+
 		resp.getWriter().print(card.toString());
 	}
 
@@ -726,6 +770,15 @@ public class CardsServlet extends HttpServlet {
 		result.addProperty("success", true);
 		resp.getWriter().print(result.toString());
 		sendRefreshEvent(clientId, cardId);
+
+		// Notify on assignment change
+		if (json.has("salesRepId")) {
+			int newSalesRep = json.get("salesRepId").getAsInt();
+			if (newSalesRep > 0 && newSalesRep != userId) {
+				NotificationHelper.addWatcher(clientId, cardId, newSalesRep);
+				NotificationHelper.notifyWatchers(clientId, cardId, userId, "KanbanNotifyAssign", "");
+			}
+		}
 	}
 
 	// ============================================================
@@ -805,6 +858,11 @@ public class CardsServlet extends HttpServlet {
 		result.addProperty("id", newId[0]);
 		resp.setStatus(201);
 		resp.getWriter().print(result.toString());
+
+		// Auto-watch: creator + assignee
+		NotificationHelper.addWatcher(clientId, newId[0], userId);
+		int salesRepId = json.has("salesRepId") ? json.get("salesRepId").getAsInt() : userId;
+		if (salesRepId != userId && salesRepId > 0) NotificationHelper.addWatcher(clientId, newId[0], salesRepId);
 	}
 
 	// ============================================================
