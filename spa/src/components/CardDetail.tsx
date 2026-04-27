@@ -5,6 +5,7 @@ import { useCardDetail, useUpdateCard, useAddComment, useUploadAttachment, useDe
 import { zoomRecord, downloadFile, kanbanFetch } from '../api';
 import { priorityColor, priorityLabel } from '../utils/priority';
 import { SearchSelect } from './SearchSelect';
+import { MentionInput } from './MentionInput';
 import type { InitData } from '../types';
 
 interface Props {
@@ -309,9 +310,9 @@ export function CardDetail({ cardId, init, onClose, onError }: Props) {
         <div className="mb-3">
           <div className="text-xs font-semibold text-gray-500 mb-1">{t("KanbanComments")}</div>
           <div className="flex gap-2 mb-2">
-            <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && commentText.trim()) { addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); } }}
-              placeholder={t("KanbanAddComment")} className="flex-1 border rounded px-2 py-1 text-sm" />
+            <MentionInput value={commentText} onChange={setCommentText}
+              onSubmit={() => { if (commentText.trim()) addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); }}
+              placeholder={t("KanbanAddComment")} disabled={addComment.isPending} />
             <button onClick={() => { if (commentText.trim()) addComment.mutate({ cardId, text: commentText.trim() }, { onSuccess: () => setCommentText('') }); }}
               disabled={!commentText.trim() || addComment.isPending}
               className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 disabled:opacity-50">
