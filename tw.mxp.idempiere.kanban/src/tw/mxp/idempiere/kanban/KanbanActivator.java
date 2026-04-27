@@ -101,7 +101,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 				recordMigration("2.0.0");
 			}
 			if (!isMigrationApplied("2.0.1")) {
-				ensureReminderScheduler(); // retry for environments where 2.0.0 partially failed
+				ensureReminderScheduler();
 				recordMigration("2.0.1");
 			}
 		} catch (Exception e) {
@@ -264,8 +264,8 @@ public class KanbanActivator extends Incremental2PackActivator {
 			int scheduleId = DB.getNextID(0, "AD_Schedule", null);
 			DB.executeUpdateEx("INSERT INTO AD_Schedule (AD_Schedule_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, FrequencyType, Frequency, "
-				+ "ScheduleType, AD_Schedule_UU) "
-				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily', 'D', 1, 'F', generate_uuid())",
+				+ "ScheduleType, IsIgnoreProcessingTime, IsSystemSchedule, AD_Schedule_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily', 'D', 1, 'F', 'N', 'N', generate_uuid())",
 				new Object[]{scheduleId}, null);
 
 			// AD_Scheduler
