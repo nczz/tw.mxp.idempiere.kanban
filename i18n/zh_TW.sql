@@ -134,3 +134,17 @@ UPDATE AD_Message_Trl SET MsgText='關注者', IsTranslated='Y' WHERE AD_Languag
 UPDATE AD_Message_Trl SET MsgText='卡片', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyCard');
 UPDATE AD_Message_Trl SET MsgText='操作者', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyActor');
 UPDATE AD_Message_Trl SET MsgText='時間', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyTime');
+
+-- Reminder notifications
+UPDATE AD_Message_Trl SET MsgText='明天到期', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyDueTomorrow');
+UPDATE AD_Message_Trl SET MsgText='今天到期', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyDueToday');
+UPDATE AD_Message_Trl SET MsgText='已逾期', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyOverdue');
+UPDATE AD_Message_Trl SET MsgText='天逾期', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyOverdueDays');
+UPDATE AD_Message_Trl SET MsgText='明天開始', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyStartTomorrow');
+UPDATE AD_Message_Trl SET MsgText='逾期 — 已通知主管', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyEscalateSupervisor');
+UPDATE AD_Message_Trl SET MsgText='逾期 — 已自動標記待決', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanNotifyEscalateBlocked');
+UPDATE AD_Message_Trl SET MsgText='優先級', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEmailPriority');
+UPDATE AD_Message_Trl SET MsgText='狀態', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEmailStatus');
+UPDATE AD_Message_Trl SET MsgText='負責人', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEmailAssignee');
+UPDATE AD_Message_Trl SET MsgText='到期日', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEmailDueDate');
+UPDATE AD_Message_Trl SET MsgText='組織', IsTranslated='Y' WHERE AD_Language='zh_TW' AND AD_Message_ID=(SELECT AD_Message_ID FROM AD_Message WHERE Value='KanbanEmailOrg');

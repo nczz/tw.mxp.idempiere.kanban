@@ -54,7 +54,7 @@ public class NotificationHelper {
 				// Subject: [REQ001] 摘要 — Alice 變更了狀態
 				String subject = "[" + docNo + "] " + summary + " — " + actorName + " " + action;
 
-				// Body
+				// Body (plain text for AD_Note)
 				StringBuilder body = new StringBuilder();
 				body.append(actorName).append(" ").append(action);
 				if (detail != null && !detail.isEmpty()) body.append("\n").append(detail);
@@ -74,8 +74,9 @@ public class NotificationHelper {
 				note.setReference(docNo);
 				note.saveEx();
 
-				// Email
-				sendEmail(clientId, userId, subject, body.toString());
+				// Email (HTML)
+				String htmlBody = buildHtmlBody(cardId, actorUserId, msgKey, detail, lang);
+				sendEmail(clientId, userId, subject, htmlBody);
 			} catch (Exception e) {
 				log.log(Level.FINE, "Notify failed for user " + userId, e);
 			}
@@ -114,10 +115,84 @@ public class NotificationHelper {
 			if (email == null || email.isEmpty()) return;
 
 			MClient client = MClient.get(Env.getCtx(), clientId);
-			client.sendEMail(email, subject, body, null, false);
+			client.sendEMail(email, subject, body, null, true); // true = HTML
 		} catch (Exception e) {
 			log.log(Level.FINE, "Email failed", e);
 		}
+	}
+
+	/** Build HTML email body with card info. */
+	static String buildHtmlBody(int cardId, int actorUserId, String msgKey, String detail, String lang) {
+		String docNo = DB.getSQLValueStringEx(null, "SELECT DocumentNo FROM R_Request WHERE R_Request_ID=?", cardId);
+		String summary = DB.getSQLValueStringEx(null, "SELECT Summary FROM R_Request WHERE R_Request_ID=?", cardId);
+		String actorName = DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId);
+		String priority = DB.getSQLValueStringEx(null,
+			"SELECT COALESCE(t.Name, rl.Name) FROM AD_Ref_List rl "
+			+ "LEFT JOIN AD_Ref_List_Trl t ON rl.AD_Ref_List_ID=t.AD_Ref_List_ID AND t.AD_Language=? AND t.IsTranslated='Y' "
+			+ "WHERE rl.AD_Reference_ID=154 AND rl.Value=(SELECT Priority FROM R_Request WHERE R_Request_ID=?)",
+			lang, cardId);
+		String status = DB.getSQLValueStringEx(null,
+			"SELECT s.Name FROM R_Status s JOIN R_Request r ON r.R_Status_ID=s.R_Status_ID WHERE r.R_Request_ID=?", cardId);
+		String assignee = DB.getSQLValueStringEx(null,
+			"SELECT u.Name FROM AD_User u JOIN R_Request r ON r.SalesRep_ID=u.AD_User_ID WHERE r.R_Request_ID=?", cardId);
+		String dueDate = DB.getSQLValueStringEx(null,
+			"SELECT TO_CHAR(DateNextAction, 'YYYY-MM-DD') FROM R_Request WHERE R_Request_ID=?", cardId);
+		String orgName = DB.getSQLValueStringEx(null,
+			"SELECT o.Name FROM AD_Org o JOIN R_Request r ON r.AD_Org_ID=o.AD_Org_ID WHERE r.R_Request_ID=?", cardId);
+
+		if (docNo == null) docNo = "";
+		if (summary == null) summary = "";
+		if (actorName == null) actorName = "";
+		if (priority == null) priority = "";
+		if (status == null) status = "";
+		if (assignee == null) assignee = "";
+		if (dueDate == null) dueDate = "—";
+		if (orgName == null) orgName = "";
+
+		String action = getTranslatedMessage(msgKey, lang);
+		String lCard = getTranslatedMessage("KanbanNotifyCard", lang);
+		String lPriority = getTranslatedMessage("KanbanEmailPriority", lang);
+		String lStatus = getTranslatedMessage("KanbanEmailStatus", lang);
+		String lAssignee = getTranslatedMessage("KanbanEmailAssignee", lang);
+		String lDueDate = getTranslatedMessage("KanbanEmailDueDate", lang);
+		String lOrg = getTranslatedMessage("KanbanEmailOrg", lang);
+		String lActor = getTranslatedMessage("KanbanNotifyActor", lang);
+		String lTime = getTranslatedMessage("KanbanNotifyTime", lang);
+		String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date());
+
+		StringBuilder h = new StringBuilder();
+		h.append("<div style=\"font-family:sans-serif;max-width:560px;margin:0 auto\">");
+		// Header
+		h.append("<div style=\"background:#3b82f6;color:#fff;padding:12px 16px;border-radius:8px 8px 0 0;font-size:14px\">");
+		h.append("<strong>").append(esc(actorName)).append("</strong> ").append(esc(action));
+		h.append("</div>");
+		// Card info
+		h.append("<div style=\"border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:16px\">");
+		h.append("<div style=\"font-size:18px;font-weight:bold;margin-bottom:4px\">").append(esc(summary)).append("</div>");
+		h.append("<div style=\"font-size:12px;color:#9ca3af;margin-bottom:12px\">").append(esc(docNo)).append("</div>");
+		// Detail
+		if (detail != null && !detail.isEmpty()) {
+			h.append("<div style=\"background:#f9fafb;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px;color:#374151;white-space:pre-wrap\">");
+			h.append(esc(detail));
+			h.append("</div>");
+		}
+		// Info table
+		h.append("<table style=\"font-size:13px;color:#6b7280;width:100%;border-collapse:collapse\">");
+		row(h, lPriority, priority); row(h, lStatus, status); row(h, lAssignee, assignee);
+		row(h, lDueDate, dueDate); row(h, lOrg, orgName);
+		row(h, lActor, actorName); row(h, lTime, timestamp);
+		h.append("</table>");
+		h.append("</div></div>");
+		return h.toString();
+	}
+
+	private static void row(StringBuilder h, String label, String value) {
+		h.append("<tr><td style=\"padding:3px 8px 3px 0;color:#9ca3af\">").append(esc(label))
+		  .append("</td><td style=\"padding:3px 0\">").append(esc(value)).append("</td></tr>");
+	}
+
+	private static String esc(String s) {
+		return s == null ? "" : s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");
 	}
 
 	/** Add a watcher to a card (idempotent). */

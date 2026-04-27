@@ -95,6 +95,11 @@ public class KanbanActivator extends Incremental2PackActivator {
 				ensureMessages();
 				recordMigration("1.9.0");
 			}
+			if (!isMigrationApplied("2.0.0")) {
+				ensureMessages();
+				ensureReminderScheduler();
+				recordMigration("2.0.0");
+			}
 		} catch (Exception e) {
 			log.log(Level.WARNING, "Migration error (will retry on next restart)", e);
 		}
@@ -239,6 +244,40 @@ public class KanbanActivator extends Incremental2PackActivator {
 		}
 	}
 
+	private void ensureReminderScheduler() {
+		// AD_Process
+		String processUU = "tw-mxp-idempiere-kanban-reminder-001";
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Process WHERE AD_Process_UU=?", processUU) == 0) {
+			int procId = DB.getNextID(0, "AD_Process", null);
+			DB.executeUpdateEx("INSERT INTO AD_Process (AD_Process_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Description, "
+				+ "Value, Classname, IsReport, IsDirectPrint, AccessLevel, EntityType, AD_Process_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Reminder', 'Daily scan for due/overdue cards and send notifications', "
+				+ "'KanbanReminder', 'tw.mxp.idempiere.kanban.KanbanReminderProcess', 'N', 'N', '3', 'U', ?)",
+				new Object[]{procId, processUU}, null);
+
+			// AD_Scheduler (daily at 08:00)
+			int schedId = DB.getNextID(0, "AD_Scheduler", null);
+			DB.executeUpdateEx("INSERT INTO AD_Scheduler (AD_Scheduler_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Description, "
+				+ "AD_Process_ID, FrequencyType, Frequency, ScheduleType, "
+				+ "RunOnlyOnIP, Supervisor_ID, KeepLogDays, AD_Scheduler_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily Reminder', 'Scans due/overdue cards and sends notifications', "
+				+ "?, 'D', 1, 'F', NULL, 0, 7, generate_uuid())",
+				new Object[]{schedId, procId}, null);
+		}
+
+		// AD_SysConfig: KANBAN_REMINDER_ENABLED (default Y)
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_SysConfig WHERE Name='KANBAN_REMINDER_ENABLED'") == 0) {
+			int id = DB.getNextID(0, "AD_SysConfig", null);
+			DB.executeUpdateEx("INSERT INTO AD_SysConfig (AD_SysConfig_ID, AD_Client_ID, AD_Org_ID, IsActive, "
+				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Value, Description, EntityType, ConfigurationLevel, AD_SysConfig_UU) "
+				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'KANBAN_REMINDER_ENABLED', 'Y', "
+				+ "'Enable daily reminder notifications for kanban cards (Y/N)', 'U', 'S', generate_uuid())",
+				new Object[]{id}, null);
+		}
+	}
+
 	private void ensureMessages() {
 		String[][] msgs = {
 			{"KanbanPrivate","My Cards","我的卡片"},{"KanbanSubordinates","My Team","我的團隊"},
@@ -322,6 +361,20 @@ public class KanbanActivator extends Incremental2PackActivator {
 			{"KanbanNotifyCard","Card","卡片"},
 			{"KanbanNotifyActor","By","操作者"},
 			{"KanbanNotifyTime","Time","時間"},
+			// Reminder notifications
+			{"KanbanNotifyDueTomorrow","is due tomorrow","明天到期"},
+			{"KanbanNotifyDueToday","is due today","今天到期"},
+			{"KanbanNotifyOverdue","is overdue","已逾期"},
+			{"KanbanNotifyOverdueDays","days overdue","天逾期"},
+			{"KanbanNotifyStartTomorrow","starts tomorrow","明天開始"},
+			{"KanbanNotifyEscalateSupervisor","overdue — escalated to supervisor","逾期 — 已通知主管"},
+			{"KanbanNotifyEscalateBlocked","overdue — auto-blocked","逾期 — 已自動標記待決"},
+			// Email template labels
+			{"KanbanEmailPriority","Priority","優先級"},
+			{"KanbanEmailStatus","Status","狀態"},
+			{"KanbanEmailAssignee","Assignee","負責人"},
+			{"KanbanEmailDueDate","Due Date","到期日"},
+			{"KanbanEmailOrg","Organization","組織"},
 		};
 		for (String[] m : msgs) {
 			if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Message WHERE Value=?", m[0]) > 0) continue;
