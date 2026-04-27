@@ -249,18 +249,22 @@ public class KanbanActivator extends Incremental2PackActivator {
 	}
 
 	private void ensureReminderScheduler() {
-		// AD_Process
 		String processUU = "tw-mxp-idempiere-kanban-reminder-001";
-		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Process WHERE AD_Process_UU=?", processUU) == 0) {
-			int procId = DB.getNextID(0, "AD_Process", null);
+
+		// AD_Process
+		int procId = DB.getSQLValueEx(null, "SELECT AD_Process_ID FROM AD_Process WHERE AD_Process_UU=?", processUU);
+		if (procId <= 0) {
+			procId = DB.getNextID(0, "AD_Process", null);
 			DB.executeUpdateEx("INSERT INTO AD_Process (AD_Process_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Description, "
 				+ "Value, Classname, IsReport, IsDirectPrint, AccessLevel, EntityType, AD_Process_UU) "
 				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Reminder', 'Daily scan for due/overdue cards and send notifications', "
 				+ "'KanbanReminder', 'tw.mxp.idempiere.kanban.KanbanReminderProcess', 'N', 'N', '3', 'U', ?)",
 				new Object[]{procId, processUU}, null);
+		}
 
-			// AD_Schedule (daily frequency)
+		// AD_Schedule + AD_Scheduler
+		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_Scheduler WHERE AD_Process_ID=?", procId) == 0) {
 			int scheduleId = DB.getNextID(0, "AD_Schedule", null);
 			DB.executeUpdateEx("INSERT INTO AD_Schedule (AD_Schedule_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, FrequencyType, Frequency, "
@@ -268,7 +272,6 @@ public class KanbanActivator extends Incremental2PackActivator {
 				+ "VALUES (?, 0, 0, 'Y', now(), 0, now(), 0, 'Kanban Daily', 'D', 1, 'F', 'N', 'N', generate_uuid())",
 				new Object[]{scheduleId}, null);
 
-			// AD_Scheduler
 			int schedulerId = DB.getNextID(0, "AD_Scheduler", null);
 			DB.executeUpdateEx("INSERT INTO AD_Scheduler (AD_Scheduler_ID, AD_Client_ID, AD_Org_ID, IsActive, "
 				+ "Created, CreatedBy, Updated, UpdatedBy, Name, Description, "
@@ -279,7 +282,7 @@ public class KanbanActivator extends Incremental2PackActivator {
 				new Object[]{schedulerId, procId, scheduleId}, null);
 		}
 
-		// AD_SysConfig: KANBAN_REMINDER_ENABLED (default Y)
+		// AD_SysConfig
 		if (DB.getSQLValueEx(null, "SELECT COUNT(*) FROM AD_SysConfig WHERE Name='KANBAN_REMINDER_ENABLED'") == 0) {
 			int id = DB.getNextID(0, "AD_SysConfig", null);
 			DB.executeUpdateEx("INSERT INTO AD_SysConfig (AD_SysConfig_ID, AD_Client_ID, AD_Org_ID, IsActive, "
