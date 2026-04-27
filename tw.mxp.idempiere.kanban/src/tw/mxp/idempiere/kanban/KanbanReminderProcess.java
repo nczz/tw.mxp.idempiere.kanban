@@ -76,7 +76,7 @@ public class KanbanReminderProcess extends SvrProcess {
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
 					int cardId = rs.getInt(1);
-					NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyOverdue", "1 " + "day");
+					NotificationHelper.notifyWatchers(clientId, cardId, 0, "KanbanNotifyOverdue", "1 day");
 					overdue++;
 				}
 			}

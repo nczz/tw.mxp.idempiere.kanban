@@ -32,7 +32,7 @@ public class NotificationHelper {
 		// Gather card info
 		String docNo = DB.getSQLValueStringEx(null, "SELECT DocumentNo FROM R_Request WHERE R_Request_ID=?", cardId);
 		String summary = DB.getSQLValueStringEx(null, "SELECT Summary FROM R_Request WHERE R_Request_ID=?", cardId);
-		String actorName = DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId);
+		String actorName = actorUserId > 0 ? DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId) : "Kanban Reminder";
 		if (docNo == null) docNo = String.valueOf(cardId);
 		if (summary == null) summary = "";
 		if (actorName == null) actorName = "";
@@ -51,16 +51,18 @@ public class NotificationHelper {
 				String actorLabel = getTranslatedMessage("KanbanNotifyActor", lang);
 				String timeLabel = getTranslatedMessage("KanbanNotifyTime", lang);
 
-				// Subject: [REQ001] 摘要 — Alice 變更了狀態
-				String subject = "[" + docNo + "] " + summary + " — " + actorName + " " + action;
+				// Subject
+				String subject = actorUserId > 0
+					? "[" + docNo + "] " + summary + " — " + actorName + " " + action
+					: "[" + docNo + "] " + summary + " — ⏰ " + action;
 
 				// Body (plain text for AD_Note)
 				StringBuilder body = new StringBuilder();
-				body.append(actorName).append(" ").append(action);
+				body.append(actorUserId > 0 ? actorName + " " : "⏰ ").append(action);
 				if (detail != null && !detail.isEmpty()) body.append("\n").append(detail);
 				body.append("\n\n");
 				body.append(cardLabel).append(": ").append(docNo).append(" — ").append(summary).append("\n");
-				body.append(actorLabel).append(": ").append(actorName).append("\n");
+				if (actorUserId > 0) body.append(actorLabel).append(": ").append(actorName).append("\n");
 				body.append(timeLabel).append(": ").append(timestamp);
 
 				// AD_Note
@@ -125,7 +127,7 @@ public class NotificationHelper {
 	static String buildHtmlBody(int cardId, int actorUserId, String msgKey, String detail, String lang) {
 		String docNo = DB.getSQLValueStringEx(null, "SELECT DocumentNo FROM R_Request WHERE R_Request_ID=?", cardId);
 		String summary = DB.getSQLValueStringEx(null, "SELECT Summary FROM R_Request WHERE R_Request_ID=?", cardId);
-		String actorName = DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId);
+		String actorName = actorUserId > 0 ? DB.getSQLValueStringEx(null, "SELECT Name FROM AD_User WHERE AD_User_ID=?", actorUserId) : "Kanban Reminder";
 		String priority = DB.getSQLValueStringEx(null,
 			"SELECT COALESCE(t.Name, rl.Name) FROM AD_Ref_List rl "
 			+ "LEFT JOIN AD_Ref_List_Trl t ON rl.AD_Ref_List_ID=t.AD_Ref_List_ID AND t.AD_Language=? AND t.IsTranslated='Y' "
@@ -164,7 +166,9 @@ public class NotificationHelper {
 		h.append("<div style=\"font-family:sans-serif;max-width:560px;margin:0 auto\">");
 		// Header
 		h.append("<div style=\"background:#3b82f6;color:#fff;padding:12px 16px;border-radius:8px 8px 0 0;font-size:14px\">");
-		h.append("<strong>").append(esc(actorName)).append("</strong> ").append(esc(action));
+		h.append(actorUserId > 0
+			? "<strong>" + esc(actorName) + "</strong> " + esc(action)
+			: "⏰ " + esc(action));
 		h.append("</div>");
 		// Card info
 		h.append("<div style=\"border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:16px\">");
@@ -180,7 +184,8 @@ public class NotificationHelper {
 		h.append("<table style=\"font-size:13px;color:#6b7280;width:100%;border-collapse:collapse\">");
 		row(h, lPriority, priority); row(h, lStatus, status); row(h, lAssignee, assignee);
 		row(h, lDueDate, dueDate); row(h, lOrg, orgName);
-		row(h, lActor, actorName); row(h, lTime, timestamp);
+		if (actorUserId > 0) row(h, lActor, actorName);
+		row(h, lTime, timestamp);
 		h.append("</table>");
 		h.append("</div></div>");
 		return h.toString();
